@@ -51,6 +51,9 @@ iD.ui.EntityEditor = function(context) {
         $enter = $body.enter().append('div')
             .attr('class', 'inspector-body');
 
+        var schemaSwitcher = iD.ui.SchemaSwitcher(context);
+        $enter.append('div').call(schemaSwitcher);
+
         $enter.append('div')
             .attr('class', 'preset-list-item inspector-inner')
             .append('div')

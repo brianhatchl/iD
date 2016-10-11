@@ -102,6 +102,10 @@ iD.ui.PresetList = function(context) {
         var listWrap = selection.append('div')
             .attr('class', 'inspector-body');
 
+        var schemaSwitcher = iD.ui.SchemaSwitcher(context);
+        listWrap.append('div').classed('fillL', true)
+            .append('div').call(schemaSwitcher);
+
         var list = listWrap.append('div')
             .attr('class', 'preset-list fillL cf')
             .call(drawList, context.presets().defaults(geometry, 36));

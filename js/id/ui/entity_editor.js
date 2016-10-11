@@ -52,7 +52,12 @@ iD.ui.EntityEditor = function(context) {
             .attr('class', 'inspector-body');
 
         var schemaSwitcher = iD.ui.SchemaSwitcher(context);
-        $enter.append('div').call(schemaSwitcher);
+        $enter.append('div').call(schemaSwitcher, function() {
+            // var filterType = d3.select('#entity_editor_presettranstype').value();
+            // currentTranslation = filterType;
+            // entityEditor(selection);
+
+        });
 
         $enter.append('div')
             .attr('class', 'preset-list-item inspector-inner')

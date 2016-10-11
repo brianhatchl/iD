@@ -68,16 +68,46 @@ iD.ui.PresetList = function(context) {
         function inputevent() {
             var value = search.property('value');
             list.classed('filtered', value.length);
+
             if (value.length) {
-                var results = presets.search(value, geometry);
+                //Add translation server search for translated tag schemas
+                var tagSchema = context.hoot().activeTranslation();
+                if(tagSchema === context.hoot().defaultTranslation()) {
+                    var results = presets.search(value, geometry);
+                    searchHandler(value, results);
+                } else {
+                    context.hoot().searchTranslatedSchema(value, geometry, function(error, resp){
+                        if (error) {
+                            console.error(error);
+                        } else {
+                            var translatedPresets = resp.map(function(d) {
+                                return iD.presets.Preset(tagSchema + '/' + d.fcode,
+                                    {
+                                        geometry: geometry,
+                                        tags: {},
+                                        'hoot:featuretype': d.desc,
+                                        'hoot:tagschema': tagSchema,
+                                        'hoot:fcode': d.fcode,
+                                        name: d.desc + ' (' + d.fcode + ')'
+                                    }, {});
+                            });
+                            searchHandler(value, iD.presets.Collection(translatedPresets));
+                        }
+                    });
+                }
+            } else {
+                presets = context.presets().defaults(geometry, 72);
+                presets.collection = filterPresets(context.hoot().activeTranslation(), presets.collection);
+                list.call(drawList, presets);
+                message.text(t('inspector.choose'));
+            }
+
+            function searchHandler(value, results) {
                 message.text(t('inspector.results', {
                     n: results.collection.length,
                     search: value
                 }));
                 list.call(drawList, results);
-            } else {
-                list.call(drawList, context.presets().defaults(geometry, 36));
-                message.text(t('inspector.choose'));
             }
         }
 
@@ -102,13 +132,41 @@ iD.ui.PresetList = function(context) {
         var listWrap = selection.append('div')
             .attr('class', 'inspector-body');
 
+        function filterPresets(tagSchema, presets) {
+            var filtered;
+            // When OSM type get all presets that do not have hoot:tagschema
+            if (tagSchema === 'OSM') {
+                filtered = presets.filter(function(p) {
+                    return p && !p['hoot:tagschema'];
+                });
+            } else {
+                // If not OSM type then get ones with hoot:tagschema and filter further by tagSchema
+                filtered = presets.filter(function(p) {
+                    return p && p['hoot:tagschema'];
+                }).filter(function(p) {
+                    return p['hoot:tagschema'] === tagSchema;
+                });
+            }
+            return filtered;
+        }
+
         var schemaSwitcher = iD.ui.SchemaSwitcher(context);
         listWrap.append('div').classed('fillL', true)
-            .append('div').call(schemaSwitcher);
+            .append('div').call(schemaSwitcher, function() {
+                list.selectAll('.preset-list-item').remove();
+                presets = context.presets().defaults(geometry, 72);
+                presets.collection = filterPresets(context.hoot().activeTranslation(), presets.collection);
+                list.call(drawList, presets);
 
+                // Trigger search on input value
+                //search.trigger('input');
+            });
+
+        presets = context.presets().defaults(geometry, 72);
+        presets.collection = filterPresets(context.hoot().activeTranslation(), presets.collection);
         var list = listWrap.append('div')
             .attr('class', 'preset-list fillL cf')
-            .call(drawList, context.presets().defaults(geometry, 36));
+            .call(drawList, presets);
     }
 
     function drawList(list, presets) {

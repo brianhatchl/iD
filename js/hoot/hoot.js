@@ -41,9 +41,41 @@ iD.hoot = function() {
             formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
             '/schema?geometry='+ geometry + '&translation=' + activeTranslation + '&searchstr=' +
             value + '&maxlevdst=' + iD.data.hoot.presetMaxLevDistance +
-            '&limit=' + iD.data.hoot.presetMaxDisplayNum, function(error, resp) {
-                callback(error, resp);
+            '&limit=' + iD.data.hoot.presetMaxDisplayNum, function(error, data) {
+                if (error) {
+                    console.error(error);
+                } else {
+                    callback(data);
+                }
             });
-    }
+    };
+
+    hoot.translateEntity = function(entity, callback) {
+        var osmXml = '<osm version="0.6" upload="true" generator="hootenanny">' + JXON.stringify(entity.asJXON()) + '</osm>';
+        d3.xml(window.location.protocol + '//' + window.location.hostname +
+            formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+            '/code?translation=' + activeTranslation)
+        .post(osmXml, function (error, data) {
+            if (error) {
+                console.error(error);
+            } else {
+                //Turn osm xml into a preset and tags
+                var tags = [].map.call(data.querySelectorAll('tag'), function(tag) {
+                    return {
+                        k: tag.getAttribute("k"),
+                        v: tag.getAttribute("v")
+                    };
+                }).reduce(function(prev, curr) {
+                    prev[curr.k] = curr.v;
+                    return prev;
+                }, {});
+                console.log(tags);
+
+                //var preset =
+                //callback(preset, tags);
+            }
+        });
+    };
+
     return hoot;
 };

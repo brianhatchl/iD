@@ -70,29 +70,25 @@ iD.ui.PresetList = function(context) {
             list.classed('filtered', value.length);
 
             if (value.length) {
-                //Add translation server search for translated tag schemas
                 var tagSchema = context.hoot().activeTranslation();
                 var results = presets.search(value, geometry).matchSchema(context.hoot().activeTranslation());
                 if(tagSchema === context.hoot().defaultTranslation()) {
                     searchHandler(value, results);
                 } else {
-                    context.hoot().searchTranslatedSchema(value, geometry, function(error, resp){
-                        if (error) {
-                            console.error(error);
-                        } else {
-                            var translatedPresets = resp.map(function(d) {
-                                return iD.presets.Preset(tagSchema + '/' + d.fcode,
-                                    {
-                                        geometry: geometry,
-                                        tags: {},
-                                        'hoot:featuretype': d.desc,
-                                        'hoot:tagschema': tagSchema,
-                                        'hoot:fcode': d.fcode,
-                                        name: d.desc + ' (' + d.fcode + ')'
-                                    }, {});
-                            });
-                            searchHandler(value, iD.presets.Collection(results.collection.concat(translatedPresets)));
-                        }
+                //Add translation server search for translated tag schemas
+                    context.hoot().searchTranslatedSchema(value, geometry, function(data){
+                        var translatedPresets = data.map(function(d) {
+                            return iD.presets.Preset(tagSchema + '/' + d.fcode,
+                                {
+                                    geometry: geometry,
+                                    tags: {},
+                                    'hoot:featuretype': d.desc,
+                                    'hoot:tagschema': tagSchema,
+                                    'hoot:fcode': d.fcode,
+                                    name: d.desc + ' (' + d.fcode + ')'
+                                }, {});
+                        });
+                        searchHandler(value, iD.presets.Collection(results.collection.concat(translatedPresets)));
                     });
                 }
             } else {

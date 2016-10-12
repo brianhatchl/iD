@@ -9,7 +9,6 @@ iD.ui.SchemaSwitcher = function(context) {
         switcher.append('label')
             .html('Tag Schema:');
         var input = switcher.append('input')
-            // .attr('id', 'presettranstype')
             .attr('type', 'text')
             .attr('value', context.hoot().activeTranslation())
             .call(d3.combobox()

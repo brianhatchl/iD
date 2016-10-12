@@ -53,10 +53,11 @@ iD.ui.EntityEditor = function(context) {
 
         var schemaSwitcher = iD.ui.SchemaSwitcher(context);
         $enter.append('div').call(schemaSwitcher, function() {
-            // var filterType = d3.select('#entity_editor_presettranstype').value();
-            // currentTranslation = filterType;
-            // entityEditor(selection);
-
+             //Do we need to translate tags?
+            if (context.hoot().activeTranslation() !== 'OSM') {
+               var entity = context.entity(context.selectedIDs()[0]);
+                context.hoot().translateEntity(entity, updateTags);
+            }
         });
 
         $enter.append('div')
@@ -103,6 +104,14 @@ iD.ui.EntityEditor = function(context) {
         $body.select('.preset-list-item .label')
             .text(preset.name());
 
+        //Do we need to translate tags?
+        if (context.hoot().activeTranslation() !== 'OSM') {
+            context.hoot().translateEntity(entity, updateTags);
+        } else {
+            updateTags(preset, tags);
+        }
+
+    function updateTags(preset, tags) {
         $body.select('.inspector-preset')
             .call(presetEditor
                 .preset(preset)
@@ -116,6 +125,7 @@ iD.ui.EntityEditor = function(context) {
                 .entityID(id)
                 .tags(tags)
                 .state(state));
+    }
 
         if (entity.type === 'relation') {
             $body.select('.raw-member-editor')

@@ -13,6 +13,10 @@ iD.presets.Preset = function(id, preset, fields) {
         return preset.geometry.indexOf(geometry) >= 0;
     };
 
+    preset.matchSchema = function(schema) {
+        return preset['hoot:tagschema'] === schema || (schema === 'OSM' && preset['hoot:tagschema'] === undefined);
+    };
+
     var matchScore = preset.matchScore || 1;
     preset.matchScore = function(entity) {
         var tags = preset.tags,

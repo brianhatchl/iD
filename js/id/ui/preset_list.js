@@ -72,8 +72,8 @@ iD.ui.PresetList = function(context) {
             if (value.length) {
                 //Add translation server search for translated tag schemas
                 var tagSchema = context.hoot().activeTranslation();
+                var results = presets.search(value, geometry).matchSchema(context.hoot().activeTranslation());
                 if(tagSchema === context.hoot().defaultTranslation()) {
-                    var results = presets.search(value, geometry);
                     searchHandler(value, results);
                 } else {
                     context.hoot().searchTranslatedSchema(value, geometry, function(error, resp){
@@ -91,14 +91,12 @@ iD.ui.PresetList = function(context) {
                                         name: d.desc + ' (' + d.fcode + ')'
                                     }, {});
                             });
-                            searchHandler(value, iD.presets.Collection(translatedPresets));
+                            searchHandler(value, iD.presets.Collection(results.collection.concat(translatedPresets)));
                         }
                     });
                 }
             } else {
-                presets = context.presets().defaults(geometry, 72);
-                presets.collection = filterPresets(context.hoot().activeTranslation(), presets.collection);
-                list.call(drawList, presets);
+                list.call(drawList, context.presets().defaults(geometry, 72).matchSchema(context.hoot().activeTranslation()));
                 message.text(t('inspector.choose'));
             }
 
@@ -132,41 +130,19 @@ iD.ui.PresetList = function(context) {
         var listWrap = selection.append('div')
             .attr('class', 'inspector-body');
 
-        function filterPresets(tagSchema, presets) {
-            var filtered;
-            // When OSM type get all presets that do not have hoot:tagschema
-            if (tagSchema === 'OSM') {
-                filtered = presets.filter(function(p) {
-                    return p && !p['hoot:tagschema'];
-                });
-            } else {
-                // If not OSM type then get ones with hoot:tagschema and filter further by tagSchema
-                filtered = presets.filter(function(p) {
-                    return p && p['hoot:tagschema'];
-                }).filter(function(p) {
-                    return p['hoot:tagschema'] === tagSchema;
-                });
-            }
-            return filtered;
-        }
-
         var schemaSwitcher = iD.ui.SchemaSwitcher(context);
         listWrap.append('div').classed('fillL', true)
             .append('div').call(schemaSwitcher, function() {
                 list.selectAll('.preset-list-item').remove();
-                presets = context.presets().defaults(geometry, 72);
-                presets.collection = filterPresets(context.hoot().activeTranslation(), presets.collection);
-                list.call(drawList, presets);
+                list.call(drawList, context.presets().defaults(geometry, 72).matchSchema(context.hoot().activeTranslation()));
 
                 // Trigger search on input value
                 //search.trigger('input');
             });
 
-        presets = context.presets().defaults(geometry, 72);
-        presets.collection = filterPresets(context.hoot().activeTranslation(), presets.collection);
         var list = listWrap.append('div')
             .attr('class', 'preset-list fillL cf')
-            .call(drawList, presets);
+            .call(drawList, context.presets().defaults(geometry, 72).matchSchema(context.hoot().activeTranslation()));
     }
 
     function drawList(list, presets) {

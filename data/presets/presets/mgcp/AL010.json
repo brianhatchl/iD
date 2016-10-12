@@ -1,7 +1,7 @@
+
 {
   "icon": "town-hall",
   "geometry": [
-    "point",
     "area"
   ],
   "tags": {},

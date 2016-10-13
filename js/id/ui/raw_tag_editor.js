@@ -146,25 +146,35 @@ iD.ui.RawTagEditor = function(context) {
 
             key.call(d3.combobox()
                 .fetcher(function(value, callback) {
-                    context.taginfo().keys({
-                        debounce: true,
-                        geometry: context.geometry(id),
-                        query: value
-                    }, function(err, data) {
-                        if (!err) callback(sort(value, data));
-                    });
+                    if (context.hoot().activeTranslation === 'OSM') {
+                        context.taginfo().keys({
+                            debounce: true,
+                            geometry: context.geometry(id),
+                            query: value
+                        }, function(err, data) {
+                            if (!err) callback(sort(value, data));
+                        });
+                    } else {
+                        var data = context.hoot().filterSchemaKeys(value);
+                        callback(sort(value, data));
+                    }
                 }));
 
             value.call(d3.combobox()
                 .fetcher(function(value, callback) {
-                    context.taginfo().values({
-                        debounce: true,
-                        key: key.value(),
-                        geometry: context.geometry(id),
-                        query: value
-                    }, function(err, data) {
-                        if (!err) callback(sort(value, data));
-                    });
+                    if (context.hoot().activeTranslation === 'OSM') {
+                        context.taginfo().values({
+                            debounce: true,
+                            key: key.value(),
+                            geometry: context.geometry(id),
+                            query: value
+                        }, function(err, data) {
+                            if (!err) callback(sort(value, data));
+                        });
+                    } else {
+                        var data = context.hoot().filterSchemaValues(key.value());
+                        callback(sort(value, data));
+                    }
                 }));
         }
 

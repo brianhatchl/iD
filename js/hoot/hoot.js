@@ -2,7 +2,8 @@ iD.hoot = function(context) {
     var hoot = {},
         availableTranslations,
         defaultTranslation = 'OSM',
-        activeTranslation = defaultTranslation;
+        activeTranslation = defaultTranslation,
+        activeSchema;
 
     function formatNodeJsPortOrPath(p) {
         if (isNaN(p)) {
@@ -101,6 +102,10 @@ iD.hoot = function(context) {
         return hoot;
     };
 
+    // hoot.activeSchema = function() {
+    //     return activeSchema;
+    // };
+
     hoot.searchTranslatedSchema = function(value, geometry, callback) {
         d3.json(window.location.protocol + '//' + window.location.hostname +
             formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
@@ -113,6 +118,35 @@ iD.hoot = function(context) {
                     callback(data);
                 }
             });
+    };
+
+    hoot.filterSchemaKeys = function(value) {
+        return activeSchema.columns.filter(function(d) {
+            return d.name.startsWith(value.toUpperCase());
+        }).map(function(d) {
+            return {
+                title: d.desc,
+                value: d.name
+            };
+        });
+    };
+
+    hoot.filterSchemaValues = function(value) {
+        var values = [];
+        var columns = activeSchema.columns.filter(function(d) {
+            return d.name === value.toUpperCase();
+        });
+        if (columns.length === 1) {
+            if (columns[0].enumerations) {
+                values = columns[0].enumerations.map(function(d) {
+                    return {
+                        title: d.name,
+                        value: d.value
+                    };
+                });
+            }
+        }
+        return values;
     };
 
     hoot.translateEntity = function(entity, callback) {
@@ -142,6 +176,7 @@ iD.hoot = function(context) {
                             '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
                              + '&translation=' + activeTranslation,
                             function(error, schema) {
+                                activeSchema = schema;
                                 var preset = schemaToPreset(schema);
                                 callback(preset, tags, englishTags);
                             }

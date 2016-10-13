@@ -80,7 +80,8 @@ iD.ui.preset = function(context) {
 
             preset.fields.forEach(function(field) {
                 if (field.matchGeometry(geometry)) {
-                    fields.push(UIField(field, entity, true));
+                    //if a field has a show propery, use it
+                    fields.push(UIField(field, entity, (field.show === undefined) ? true : field.show));
                 }
             });
 

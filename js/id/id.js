@@ -384,7 +384,7 @@ window.iD = function () {
 
     presets = iD.presets();
 
-    hoot = iD.hoot();
+    hoot = iD.hoot(context);
 
     return d3.rebind(context, dispatch, 'on');
 };

@@ -108,10 +108,10 @@ iD.ui.EntityEditor = function(context) {
         if (context.hoot().activeTranslation() !== 'OSM') {
             context.hoot().translateEntity(entity, updateTags);
         } else {
-            updateTags(preset, tags);
+            updateTags(preset, tags, tags);
         }
 
-    function updateTags(preset, tags) {
+    function updateTags(preset, tags, englishTags) {
         $body.select('.inspector-preset')
             .call(presetEditor
                 .preset(preset)

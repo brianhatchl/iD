@@ -1,4 +1,4 @@
-iD.hoot = function() {
+iD.hoot = function(context) {
     var hoot = {},
         availableTranslations,
         defaultTranslation = 'OSM',
@@ -10,6 +10,71 @@ iD.hoot = function() {
         } else {
             return ':' + p;
         }
+    }
+
+    function tagXmlToJson(xml) {
+        var tags = [].map.call(xml.querySelectorAll('tag'), function(tag) {
+            return {
+                k: tag.getAttribute("k"),
+                v: tag.getAttribute("v")
+            };
+        }).reduce(function(prev, curr) {
+            prev[curr.k] = curr.v;
+            return prev;
+        }, {});
+
+        return tags;
+    }
+
+    function schemaToPreset(schema) {
+        var id = activeTranslation + '/' + schema.fcode;
+        var fields = schema.columns.map(function(d) {
+            var f = {
+                key: d.name,
+                id: activeTranslation + '/' + d.name,
+                overrideLabel: d.desc,
+                placeholder: d.defValue,
+                show: false
+            };
+
+            if (d.type === 'String') {
+                f.type = 'text';
+            } else if (d.type === 'enumeration') {
+                //check if enumeration should use a checkbox
+                if (d.enumerations.some(function(e) {
+                    return (e.value === '1000' && e.name === 'False');
+                })) {
+                    f.type = 'check';
+                } else {
+                    f.type = 'combo';
+                }
+                f.strings = {options: d.enumerations.reduce(function(prev, curr) {
+                    prev[curr.value] = curr.name;
+                    return prev;
+                }, {})};
+            } else {
+                f.type = 'number';
+            }
+
+            return f;
+        });
+        var preset = {
+                        geometry: schema.geom.toLowerCase(),
+                        tags: {},
+                        'hoot:featuretype': schema.desc,
+                        'hoot:tagschema': activeTranslation,
+                        'hoot:fcode': schema.fcode,
+                        name: schema.desc + ' (' + schema.fcode + ')',
+                        fields: fields.map(function(f) {
+                            return f.id;
+                        })
+                    };
+        //Turn the array of fields into a map
+        var fieldsMap = fields.reduce(function(prev, curr) {
+            prev[curr.id] = iD.presets.Field(curr.id, curr);
+            return prev;
+        }, {});
+        return iD.presets.Preset(id, preset, fieldsMap);
     }
 
     d3.json(window.location.protocol + '//' + window.location.hostname +
@@ -51,28 +116,38 @@ iD.hoot = function() {
     };
 
     hoot.translateEntity = function(entity, callback) {
+        //1. Turn osm xml into a coded tags
         var osmXml = '<osm version="0.6" upload="true" generator="hootenanny">' + JXON.stringify(entity.asJXON()) + '</osm>';
         d3.xml(window.location.protocol + '//' + window.location.hostname +
             formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
             '/code?translation=' + activeTranslation)
-        .post(osmXml, function (error, data) {
+        .post(osmXml, function (error, translatedXml) {
             if (error) {
                 console.error(error);
             } else {
-                //Turn osm xml into a preset and tags
-                var tags = [].map.call(data.querySelectorAll('tag'), function(tag) {
-                    return {
-                        k: tag.getAttribute("k"),
-                        v: tag.getAttribute("v")
-                    };
-                }).reduce(function(prev, curr) {
-                    prev[curr.k] = curr.v;
-                    return prev;
-                }, {});
-                console.log(tags);
-
-                //var preset =
-                //callback(preset, tags);
+                var tags = tagXmlToJson(translatedXml);
+                //2. Turn osm xml into English tags
+                d3.xml(window.location.protocol + '//' + window.location.hostname +
+                    formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+                    '/english?translation=' + activeTranslation)
+                .post(osmXml, function (error, translatedEnglishXml) {
+                    if (error) {
+                        console.error(error);
+                    } else {
+                        var englishTags = tagXmlToJson(translatedEnglishXml);
+                        //3. Use schema for fcode to generate a preset
+                        d3.json(window.location.protocol + '//' + window.location.hostname +
+                            formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+                            '/osmtotds?idelem=fcode&idval=' + tags.FCODE +
+                            '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
+                             + '&translation=' + activeTranslation,
+                            function(error, schema) {
+                                var preset = schemaToPreset(schema);
+                                callback(preset, tags, englishTags);
+                            }
+                        );
+                    }
+                });
             }
         });
     };

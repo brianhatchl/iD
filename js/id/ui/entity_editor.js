@@ -101,9 +101,6 @@ iD.ui.EntityEditor = function(context) {
                 .geometry(context.geometry(id))
                 .preset(preset));
 
-        $body.select('.preset-list-item .label')
-            .text(preset.name());
-
         //Do we need to translate tags?
         if (context.hoot().activeTranslation() !== 'OSM') {
             context.hoot().translateEntity(entity, updateTags);
@@ -112,6 +109,9 @@ iD.ui.EntityEditor = function(context) {
         }
 
     function updateTags(preset, tags, englishTags) {
+        $body.select('.preset-list-item .label')
+            .text(preset.name());
+
         $body.select('.inspector-preset')
             .call(presetEditor
                 .preset(preset)

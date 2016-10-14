@@ -1104,7 +1104,8 @@ button.save.has-count .count::before {
 
 /* Unstyle button fields */
 .inspector-hover .toggle-list label.active,
-.inspector-hover .entity-editor-pane a.hide-toggle {
+.inspector-hover .entity-editor-pane a.hide-toggle,
+.inspector-hover .entity-editor-pane .tag-schema label{
     opacity: 1;
     background-color: transparent;
     color: #666;

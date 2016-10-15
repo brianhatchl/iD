@@ -251,11 +251,22 @@ iD.ui.PresetList = function(context) {
         item.choose = function() {
             context.presets().choose(preset);
 
-            context.perform(
-                iD.actions.ChangePreset(id, currentPreset, preset),
-                t('operations.change_tags.annotation'));
+            var tagSchema = context.hoot().activeTranslation();
+            if (tagSchema === 'OSM') {
+                context.perform(
+                    iD.actions.ChangePreset(id, currentPreset, preset),
+                    t('operations.change_tags.annotation'));
 
-            dispatch.choose(preset);
+                dispatch.choose(preset);
+            } else {
+                context.hoot().addTagsForFcode(preset, function(preset) {
+                    context.perform(
+                        iD.actions.ChangePreset(id, currentPreset, preset),
+                        t('operations.change_tags.annotation'));
+
+                    dispatch.choose(preset);
+                });
+            }
         };
 
         item.help = function() {

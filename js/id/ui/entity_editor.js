@@ -102,7 +102,7 @@ iD.ui.EntityEditor = function(context) {
                 .preset(preset));
 
         //Do we need to translate tags?
-        if (context.hoot().activeTranslation() !== 'OSM') {
+        if (context.hoot().activeTranslation() !== 'OSM' && !_.isEmpty(entity.tags)) {
             context.hoot().translateEntity(entity, updateTags);
         } else {
             updateTags(preset, tags, tags);
@@ -125,7 +125,6 @@ iD.ui.EntityEditor = function(context) {
                 .entityID(id)
                 .tags(tags)
                 .state(state));
-    }
 
         if (entity.type === 'relation') {
             $body.select('.raw-member-editor')
@@ -141,6 +140,10 @@ iD.ui.EntityEditor = function(context) {
             .call(iD.ui.RawMembershipEditor(context)
                 .entityID(id));
 
+        context.history()
+            .on('change.entity-editor', historyChanged);
+    }
+
         function historyChanged() {
             if (state === 'hide') return;
 
@@ -153,8 +156,6 @@ iD.ui.EntityEditor = function(context) {
             entityEditor(selection);
         }
 
-        context.history()
-            .on('change.entity-editor', historyChanged);
     }
 
     function clean(o) {

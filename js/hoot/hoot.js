@@ -30,11 +30,17 @@ iD.hoot = function(context) {
     function schemaToPreset(schema) {
         var id = activeTranslation + '/' + schema.fcode;
         var fields = schema.columns.map(function(d) {
+            var placeholder = d.defValue;
+            if (d.enumerations) {
+                placeholder = d.enumerations.filter(function(e) {
+                    return e.value === d.defValue;
+                })[0].name;
+            }
             var f = {
                 key: d.name,
                 id: activeTranslation + '/' + d.name,
                 overrideLabel: d.desc,
-                placeholder: d.defValue,
+                placeholder: placeholder,
                 show: false
             };
 
@@ -101,10 +107,6 @@ iD.hoot = function(context) {
         activeTranslation = _;
         return hoot;
     };
-
-    // hoot.activeSchema = function() {
-    //     return activeSchema;
-    // };
 
     hoot.searchTranslatedSchema = function(value, geometry, callback) {
         d3.json(window.location.protocol + '//' + window.location.hostname +
@@ -185,6 +187,20 @@ iD.hoot = function(context) {
                 });
             }
         });
+    };
+
+    hoot.addTagsForFcode = function(preset, callback) {
+        d3.json(window.location.protocol + '//' + window.location.hostname +
+            formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+            '/tdstoosm?translation=' + activeTranslation + '&fcode=' + preset['hoot:fcode'],
+            function(error, data) {
+                if (error) {
+                    console.error(error);
+                } else {
+                    preset.tags = data.attrs;
+                    callback(iD.presets.Preset(preset.id, preset, {}));
+                }
+            });
     };
 
     return hoot;

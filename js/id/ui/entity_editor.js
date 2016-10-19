@@ -200,7 +200,7 @@ iD.ui.EntityEditor = function(context) {
 
     // Tag changes that fire on input can all get coalesced into a single
     // history operation when the user leaves the field.  #2342
-    function changeTags(changed, onInput) {
+    function changeTagsCallback(changed, onInput) {
         var entity = context.entity(id),
             annotation = t('operations.change_tags.annotation'),
             tags = _.extend({}, entity.tags, changed);
@@ -216,6 +216,25 @@ iD.ui.EntityEditor = function(context) {
                 coalesceChanges = !!onInput;
             }
         }
+    }
+
+    function changeTags(changed, onInput) {
+        var entity = context.entity(id);
+        //Do we need to translate tags?
+        if (context.hoot().activeTranslation() !== 'OSM' && !_.isEmpty(entity.tags)) {
+            //deleted tags are represented as undefined
+            //remove these before translating
+            changed = d3.entries(changed).reduce(function(tags, tag) {
+                if (tag.value !== undefined) tags[tag.key] = tag.value;
+                return tags;
+            }, {});
+            var translatedEntity = entity.copy(context.graph(), []);
+            translatedEntity.tags = _.assign(rawTagEditor.tags(), changed);
+            context.hoot().translateToOsm(entity.tags, translatedEntity, onInput, changeTagsCallback);
+        } else {
+            changeTagsCallback(changed, onInput);
+        }
+
     }
 
     entityEditor.modified = function(_) {

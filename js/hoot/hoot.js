@@ -156,7 +156,7 @@ iD.hoot = function(context) {
         var osmXml = '<osm version="0.6" upload="true" generator="hootenanny">' + JXON.stringify(entity.asJXON()) + '</osm>';
         d3.xml(window.location.protocol + '//' + window.location.hostname +
             formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-            '/code?translation=' + activeTranslation)
+            '/translateTo?translation=' + activeTranslation)
         .post(osmXml, function (error, translatedXml) {
             if (error) {
                 console.error(error);
@@ -165,7 +165,7 @@ iD.hoot = function(context) {
                 //2. Turn osm xml into English tags
                 d3.xml(window.location.protocol + '//' + window.location.hostname +
                     formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-                    '/english?translation=' + activeTranslation)
+                    '/translateToEnglish?translation=' + activeTranslation)
                 .post(osmXml, function (error, translatedEnglishXml) {
                     if (error) {
                         console.error(error);
@@ -201,6 +201,33 @@ iD.hoot = function(context) {
                     callback(iD.presets.Preset(preset.id, preset, {}));
                 }
             });
+    };
+
+    hoot.translateToOsm = function(tags, translatedEntity, onInput, callback) {
+        //Turn translated tag xml into a osm tags
+        var translatedXml = '<osm version="0.6" upload="true" generator="hootenanny">' + JXON.stringify(translatedEntity.asJXON()) + '</osm>';
+        d3.xml(window.location.protocol + '//' + window.location.hostname +
+            formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+            '/translateFrom?translation=' + activeTranslation)
+        .post(translatedXml, function (error, osmXml) {
+            if (error) {
+                console.error(error);
+            } else {
+                var osmTags = tagXmlToJson(osmXml);
+                var changed = d3.entries(osmTags).reduce(function(diff, pair) {
+                    if (tags[pair.key]) {
+                        if (tags[pair.key] !== pair.value) { //tag is changed
+                            diff[pair.key] = pair.value;
+                        }
+                    } else { //tag is added
+                        diff[pair.key] = pair.value;
+                    }
+                    return diff;
+                }, {});
+                console.log(JSON.stringify(changed));
+                callback(changed, onInput);
+            }
+        });
     };
 
     return hoot;

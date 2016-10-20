@@ -224,7 +224,12 @@ iD.hoot = function(context) {
                     }
                     return diff;
                 }, {});
-                console.log(JSON.stringify(changed));
+                //remove existing tags not in translated response
+                d3.entries(tags).forEach(function(t) {
+                    if (osmTags[t.key] === undefined) {
+                        changed[t.key] = undefined; //tag is removed
+                    }
+                });
                 callback(changed, onInput);
             }
         });

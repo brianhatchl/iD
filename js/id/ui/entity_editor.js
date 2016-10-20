@@ -219,17 +219,26 @@ iD.ui.EntityEditor = function(context) {
     }
 
     function changeTags(changed, onInput) {
+        var translatedTags = rawTagEditor.tags();
         var entity = context.entity(id);
         //Do we need to translate tags?
         if (context.hoot().activeTranslation() !== 'OSM' && !_.isEmpty(entity.tags)) {
+            //some changeTags events fire even when tag hasn't changed
+            if (d3.entries(changed).every(function(c) {
+                return d3.entries(translatedTags).some(function(d) {
+                    return c.key === d.key && c.value === d.value;
+                });
+            })) {
+                return; //return if no real change
+            }
+
             //deleted tags are represented as undefined
             //remove these before translating
-            changed = d3.entries(changed).reduce(function(tags, tag) {
+            var translatedEntity = entity.copy(context.graph(), []);
+            translatedEntity.tags = d3.entries(_.assign(translatedTags, changed)).reduce(function(tags, tag) {
                 if (tag.value !== undefined) tags[tag.key] = tag.value;
                 return tags;
-            }, {});
-            var translatedEntity = entity.copy(context.graph(), []);
-            translatedEntity.tags = _.assign(rawTagEditor.tags(), changed);
+            }, {});;
             context.hoot().translateToOsm(entity.tags, translatedEntity, onInput, changeTagsCallback);
         } else {
             changeTagsCallback(changed, onInput);

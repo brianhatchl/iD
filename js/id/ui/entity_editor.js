@@ -55,8 +55,11 @@ iD.ui.EntityEditor = function(context) {
         $enter.append('div').call(schemaSwitcher, function() {
              //Do we need to translate tags?
             if (context.hoot().activeTranslation() !== 'OSM') {
-               var entity = context.entity(context.selectedIDs()[0]);
+                var entity = context.entity(context.selectedIDs()[0]);
                 context.hoot().translateEntity(entity, updateTags);
+            } else {
+                var tags = context.entity(context.selectedIDs()[0]).tags;
+                updateTags(preset, tags, tags);
             }
         });
 

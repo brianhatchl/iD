@@ -32,9 +32,12 @@ iD.hoot = function(context) {
         var fields = schema.columns.map(function(d) {
             var placeholder = d.defValue;
             if (d.enumerations) {
-                placeholder = d.enumerations.filter(function(e) {
+                var defs = d.enumerations.filter(function(e) {
                     return e.value === d.defValue;
-                })[0].name;
+                });
+                if (defs.length == 1) {
+                    placeholder = defs[0].name;
+                }
             }
             var f = {
                 key: d.name,

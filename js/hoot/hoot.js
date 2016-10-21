@@ -175,17 +175,25 @@ iD.hoot = function(context) {
                     } else {
                         var englishTags = tagXmlToJson(translatedEnglishXml);
                         //3. Use schema for fcode to generate a preset
-                        d3.json(window.location.protocol + '//' + window.location.hostname +
-                            formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-                            '/osmtotds?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
-                            '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
-                             + '&translation=' + activeTranslation,
-                            function(error, schema) {
-                                activeSchema = schema;
-                                var preset = schemaToPreset(schema);
-                                callback(preset, tags, englishTags);
-                            }
-                        );
+                        //check for existing preset
+                        var preset = context.presets().item(activeTranslation + '/' + (tags.FCODE || tags.F_CODE));
+                        if (preset) {
+                            callback(preset, tags, englishTags);
+                        } else { //if not found generate from translation server
+                            d3.json(window.location.protocol + '//' + window.location.hostname +
+                                formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+                                '/osmtotds?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
+                                '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
+                                 + '&translation=' + activeTranslation,
+                                function(error, schema) {
+                                    activeSchema = schema;
+                                    var preset = schemaToPreset(schema);
+                                    //Add the populated translated preset
+                                    context.presets().collection.push(preset);
+                                    callback(preset, tags, englishTags);
+                                }
+                            );
+                        }
                     }
                 });
             }

@@ -174,7 +174,7 @@ iD.hoot = function(context) {
                         //3. Use schema for fcode to generate a preset
                         d3.json(window.location.protocol + '//' + window.location.hostname +
                             formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-                            '/osmtotds?idelem=fcode&idval=' + tags.FCODE +
+                            '/osmtotds?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
                             '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
                              + '&translation=' + activeTranslation,
                             function(error, schema) {

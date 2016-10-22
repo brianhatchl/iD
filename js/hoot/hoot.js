@@ -37,7 +37,8 @@ iD.hoot = function(context) {
         }, {});
         var englishTags = d3.entries(tags).reduce(function(etags, t) {
             var etrans = englishMap[t.key];
-            etags[etrans.key] = (etrans.valueMap) ? etrans.valueMap[t.value] : t.value;
+            if (etrans)
+                etags[etrans.key] = (etrans.valueMap) ? etrans.valueMap[t.value] : t.value;
             return etags;
         }, {});
         return englishTags;

@@ -27,6 +27,22 @@ iD.hoot = function(context) {
         return tags;
     }
 
+    function toEnglish(tags, preset) {
+        var englishMap = preset.fields.reduce(function(map, field) {
+            map[field.key] = {
+                key: field.overrideLabel,
+                valueMap: (field.strings && field.strings.options) ? field.strings.options : undefined
+            };
+            return map;
+        }, {});
+        var englishTags = d3.entries(tags).reduce(function(etags, t) {
+            var etrans = englishMap[t.key];
+            etags[etrans.key] = (etrans.valueMap) ? etrans.valueMap[t.value] : t.value;
+            return etags;
+        }, {});
+        return englishTags;
+    }
+
     function schemaToPreset(schema) {
         var id = activeTranslation + '/' + schema.fcode;
         var fields = schema.columns.map(function(d) {
@@ -165,37 +181,26 @@ iD.hoot = function(context) {
                 console.error(error);
             } else {
                 var tags = tagXmlToJson(translatedXml);
-                //2. Turn osm xml into English tags
-                d3.xml(window.location.protocol + '//' + window.location.hostname +
-                    formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-                    '/translateToEnglish?translation=' + activeTranslation)
-                .post(osmXml, function (error, translatedEnglishXml) {
-                    if (error) {
-                        console.error(error);
-                    } else {
-                        var englishTags = tagXmlToJson(translatedEnglishXml);
-                        //3. Use schema for fcode to generate a preset
-                        //check for existing preset
-                        var preset = context.presets().item(activeTranslation + '/' + (tags.FCODE || tags.F_CODE));
-                        if (preset) {
-                            callback(preset, tags, englishTags);
-                        } else { //if not found generate from translation server
-                            d3.json(window.location.protocol + '//' + window.location.hostname +
-                                formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-                                '/osmtotds?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
-                                '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
-                                 + '&translation=' + activeTranslation,
-                                function(error, schema) {
-                                    activeSchema = schema;
-                                    var preset = schemaToPreset(schema);
-                                    //Add the populated translated preset
-                                    context.presets().collection.push(preset);
-                                    callback(preset, tags, englishTags);
-                                }
-                            );
+                //2. Use schema for fcode to generate a preset
+                //check for existing preset
+                var preset = context.presets().item(activeTranslation + '/' + (tags.FCODE || tags.F_CODE));
+                if (preset) {
+                    callback(preset, tags, toEnglish(tags, preset));
+                } else { //if not found generate from translation server
+                    d3.json(window.location.protocol + '//' + window.location.hostname +
+                        formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
+                        '/osmtotds?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
+                        '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
+                         + '&translation=' + activeTranslation,
+                        function(error, schema) {
+                            activeSchema = schema;
+                            var preset = schemaToPreset(schema);
+                            //Add the populated translated preset
+                            context.presets().collection.push(preset);
+                            callback(preset, tags, toEnglish(tags, preset));
                         }
-                    }
-                });
+                    );
+                }
             }
         });
     };

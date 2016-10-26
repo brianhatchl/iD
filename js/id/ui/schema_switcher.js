@@ -1,6 +1,5 @@
 iD.ui.SchemaSwitcher = function(context) {
-    var event = d3.dispatch('change'),
-        foo;
+    var event = d3.dispatch('change');
 
     function schemaSwitcher(div, callback) {
 

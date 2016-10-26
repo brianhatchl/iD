@@ -259,7 +259,9 @@ dist/iD.js: \
 	js/id/validations/tag_suggests_area.js \
 	js/id/end.js \
 	js/lib/locale.js \
-	data/introGraph.js
+	data/introGraph.js \
+	js/hoot/hoot.js \
+	js/id/ui/schema_switcher.js
 
 .INTERMEDIATE dist/iD.js: data/data.js
 

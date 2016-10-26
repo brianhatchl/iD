@@ -59,7 +59,7 @@ iD.ui.EntityEditor = function(context) {
                 context.hoot().translateEntity(entity, updateTags);
             } else {
                 var tags = context.entity(context.selectedIDs()[0]).tags;
-                updateTags(preset, tags, tags);
+                updateTags(preset, tags);
             }
         });
 
@@ -108,10 +108,10 @@ iD.ui.EntityEditor = function(context) {
         if (context.hoot().activeTranslation() !== 'OSM' && !_.isEmpty(entity.tags)) {
             context.hoot().translateEntity(entity, updateTags);
         } else {
-            updateTags(preset, tags, tags);
+            updateTags(preset, tags);
         }
 
-    function updateTags(preset, tags, englishTags) {
+    function updateTags(preset, tags) {
         $body.select('.preset-list-item .label')
             .text(preset.name());
 
@@ -241,7 +241,7 @@ iD.ui.EntityEditor = function(context) {
             translatedEntity.tags = d3.entries(_.assign(translatedTags, changed)).reduce(function(tags, tag) {
                 if (tag.value !== undefined) tags[tag.key] = tag.value;
                 return tags;
-            }, {});;
+            }, {});
             context.hoot().translateToOsm(entity.tags, translatedEntity, onInput, changeTagsCallback);
         } else {
             changeTagsCallback(changed, onInput);

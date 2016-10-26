@@ -27,23 +27,6 @@ iD.hoot = function(context) {
         return tags;
     }
 
-    function toEnglish(tags, preset) {
-        var englishMap = preset.fields.reduce(function(map, field) {
-            map[field.key] = {
-                key: field.overrideLabel,
-                valueMap: (field.strings && field.strings.options) ? field.strings.options : undefined
-            };
-            return map;
-        }, {});
-        var englishTags = d3.entries(tags).reduce(function(etags, t) {
-            var etrans = englishMap[t.key];
-            if (etrans)
-                etags[etrans.key] = (etrans.valueMap) ? etrans.valueMap[t.value] : t.value;
-            return etags;
-        }, {});
-        return englishTags;
-    }
-
     function schemaToPreset(schema) {
         var id = activeTranslation + '/' + schema.fcode;
         var fields = schema.columns.map(function(d) {
@@ -104,15 +87,17 @@ iD.hoot = function(context) {
         return iD.presets.Preset(id, preset, fieldsMap);
     }
 
-    d3.json(window.location.protocol + '//' + window.location.hostname +
-        formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) + '/capabilities')
-        .get(function(error, json) {
-            if (error) {
-                console.error(error);
-            } else {
-                availableTranslations = [defaultTranslation].concat(Object.keys(json));
-            }
-        });
+    if (!iD.debug) {
+        d3.json(window.location.protocol + '//' + window.location.hostname +
+            formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) + '/capabilities')
+            .get(function(error, json) {
+                if (error) {
+                    console.error(error);
+                } else {
+                    availableTranslations = [defaultTranslation].concat(Object.keys(json));
+                }
+            });
+    }
 
     hoot.availableTranslations = function() {
         return availableTranslations;
@@ -186,7 +171,7 @@ iD.hoot = function(context) {
                 //check for existing preset
                 var preset = context.presets().item(activeTranslation + '/' + (tags.FCODE || tags.F_CODE));
                 if (preset) {
-                    callback(preset, tags, toEnglish(tags, preset));
+                    callback(preset, tags);
                 } else { //if not found generate from translation server
                     d3.json(window.location.protocol + '//' + window.location.hostname +
                         formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
@@ -198,7 +183,7 @@ iD.hoot = function(context) {
                             var preset = schemaToPreset(schema);
                             //Add the populated translated preset
                             context.presets().collection.push(preset);
-                            callback(preset, tags, toEnglish(tags, preset));
+                            callback(preset, tags);
                         }
                     );
                 }

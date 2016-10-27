@@ -1,8 +1,10 @@
 iD.hoot = function(context) {
     var hoot = {},
+        event = d3.dispatch('activeTranslationChange'),
         availableTranslations,
         defaultTranslation = 'OSM',
         activeTranslation = defaultTranslation,
+        previousTranslation,
         activeSchema;
 
     function formatNodeJsPortOrPath(p) {
@@ -109,7 +111,9 @@ iD.hoot = function(context) {
 
     hoot.activeTranslation = function(_) {
         if (!arguments.length) return activeTranslation;
+        previousTranslation = activeTranslation;
         activeTranslation = _;
+        event.activeTranslationChange();
         return hoot;
     };
 
@@ -167,6 +171,13 @@ iD.hoot = function(context) {
                 console.error(error);
             } else {
                 var tags = tagXmlToJson(translatedXml);
+                //If there is an error tag or no fcode, show the alert, change schema back to OSM
+                if (tags.error || (!tags.FCODE && !tags.F_CODE)) {
+                    context.hoot().activeTranslation(previousTranslation);
+                    alert(tags.error || 'Feature out of spec, unable to translate');
+                    return;
+                }
+
                 //2. Use schema for fcode to generate a preset
                 //check for existing preset
                 var preset = context.presets().item(activeTranslation + '/' + (tags.FCODE || tags.F_CODE));
@@ -175,7 +186,7 @@ iD.hoot = function(context) {
                 } else { //if not found generate from translation server
                     d3.json(window.location.protocol + '//' + window.location.hostname +
                         formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-                        '/osmtotds?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
+                        '/translateTo?idelem=fcode&idval=' + (tags.FCODE || tags.F_CODE) +
                         '&geom=' + context.geometry(entity.id).replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();}) //toProperCase
                          + '&translation=' + activeTranslation,
                         function(error, schema) {
@@ -194,7 +205,7 @@ iD.hoot = function(context) {
     hoot.addTagsForFcode = function(preset, callback) {
         d3.json(window.location.protocol + '//' + window.location.hostname +
             formatNodeJsPortOrPath(iD.data.hoot.translationServerPort) +
-            '/tdstoosm?translation=' + activeTranslation + '&fcode=' + preset['hoot:fcode'],
+            '/translateFrom?translation=' + activeTranslation + '&fcode=' + preset['hoot:fcode'],
             function(error, data) {
                 if (error) {
                     console.error(error);
@@ -237,5 +248,5 @@ iD.hoot = function(context) {
         });
     };
 
-    return hoot;
+    return d3.rebind(hoot, event, 'on');
 };

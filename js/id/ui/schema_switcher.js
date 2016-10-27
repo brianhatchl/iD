@@ -18,11 +18,13 @@ iD.ui.SchemaSwitcher = function(context) {
                     };
                 }))
             )
-            .on('change', function(){
+            .on('change', function() {
                 context.hoot().activeTranslation(input.value());
                 if (callback && typeof callback === 'function') callback();
-            })
-            ;
+            });
+        context.hoot().on('activeTranslationChange', function() {
+            d3.selectAll('div.tag-schema').selectAll('input').value(context.hoot().activeTranslation());
+        });
     }
 
     return d3.rebind(schemaSwitcher, event, 'on');

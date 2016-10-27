@@ -176,6 +176,13 @@ iD.ui.preset = function(context) {
         $fields.exit()
             .remove();
 
+        //If the active schema translation is not OSM
+        //filter out non-schema fields
+        if (context.hoot().activeTranslation() !== 'OSM') {
+            notShown = notShown.filter(function(f) {
+                return f.id.startsWith(context.hoot().activeTranslation());
+            });
+        }
         notShown = notShown.map(function(field) {
             return {
                 title: field.label(),

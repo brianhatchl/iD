@@ -43,7 +43,7 @@ iD.Background = function(context) {
         .data([0]);
 
         footprint.enter().insert('div', '.layer-data')
-            .attr('class', 'layer-layer footprint-layer');
+            .attr('class', 'layer footprint-layer');
 
         footprint.call(footprintLayer);
     }

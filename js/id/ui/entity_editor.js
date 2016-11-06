@@ -58,8 +58,8 @@ iD.ui.EntityEditor = function(context) {
                 var entity = context.entity(context.selectedIDs()[0]);
                 context.hoot().translateEntity(entity, updateTags);
             } else {
-                var tags = context.entity(context.selectedIDs()[0]).tags;
-                updateTags(preset, tags);
+                var entity = context.entity(context.selectedIDs()[0]);
+                updateTags(context.presets().match(entity, context.graph()), entity.tags);
             }
         });
 

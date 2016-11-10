@@ -40,7 +40,7 @@ iD.dgservices  = function() {
         if (!arguments.length) return egd_connectId;
         egd_connectId = _;
         return dg;
-    }
+    };
 
     dg.profiles = [
        {value: 'Global_Currency_Profile', text: t('background.dgbg_profiles.Global_Currency_Profile')},

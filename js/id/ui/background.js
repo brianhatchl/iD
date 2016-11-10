@@ -457,7 +457,6 @@ iD.ui.Background = function(context) {
                     // if the connect id is set to prompt
                     // ask the user for their connect id
                     if (d3.select(this).property('checked')) {
-                        var activeService = (d3.select('#dgServiceSwitch').property('checked')) ? 'EGD' : 'GBM';
                         if (dgServices.egd.connectId() === 'prompt') {
                             var cid = window.prompt('Enter your EV WHS Connect ID');
                             dgServices.egd.connectId(cid);

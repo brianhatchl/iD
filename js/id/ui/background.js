@@ -452,6 +452,17 @@ iD.ui.Background = function(context) {
                 .on('change', function() {
                     //profiles.classed('hide', function() { return !profiles.classed('hide'); });
                     //Need to update visible db layers when service changes
+
+                    // The first time the user switches to EGD
+                    // if the connect id is set to prompt
+                    // ask the user for their connect id
+                    if (d3.select(this).property('checked')) {
+                        var activeService = (d3.select('#dgServiceSwitch').property('checked')) ? 'EGD' : 'GBM';
+                        if (dgServices.egd.connectId() === 'prompt') {
+                            var cid = window.prompt('Enter your EV WHS Connect ID');
+                            dgServices.egd.connectId(cid);
+                        }
+                    }
                 });
             var serviceLabel = serviceSwitch.append('label')
                 .attr('for', 'dgServiceSwitch')

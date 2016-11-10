@@ -3,9 +3,9 @@ iD.dgservices  = function() {
         gbm_proxy = '/gbm',
         egd_proxy = '/egd',
         gbm_host = 'https://{switch:a,b,c,d,e}-services.digitalglobe.com',
-        egd_host = 'https://{switch:a,b,c,d}-evwhs.digitalglobe.com',
+        egd_host = 'https://evwhs.digitalglobe.com',
         gbm_connectId = '',
-        egd_connectId = '',
+        egd_connectId = 'prompt',
         wmts_template = '/earthservice/wmtsaccess?CONNECTID={connectId}&request=GetTile&version=1.0.0'
             + '&layer=DigitalGlobe:ImageryTileService&featureProfile={profile}&style=default&format=image/png'
             + '&TileMatrixSet=EPSG:3857&TileMatrix=EPSG:3857:{zoom}&TileRow={y}&TileCol={x}',
@@ -34,6 +34,13 @@ iD.dgservices  = function() {
     }
 
     dg.enabled = isUUID(gbm_connectId) || isUUID(egd_connectId) || egd_connectId === 'prompt';
+
+    dg.egd = {};
+    dg.egd.connectId = function(_) {
+        if (!arguments.length) return egd_connectId;
+        egd_connectId = _;
+        return dg;
+    }
 
     dg.profiles = [
        {value: 'Global_Currency_Profile', text: t('background.dgbg_profiles.Global_Currency_Profile')},

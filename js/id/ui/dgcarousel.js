@@ -105,9 +105,6 @@ iD.ui.dgCarousel = function(context) {
             .call(iD.svg.Icon('#icon-carousel', 'light'))
             .call(tooltip);
 
-        button.append('span')
-            .attr('class', 'icon dgcarousel light');
-
         context.map()
         .on('move.carousel-update', _.debounce(getImageMetadata, 1000));
 

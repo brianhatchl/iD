@@ -450,8 +450,8 @@ iD.ui.Background = function(context) {
                 .attr('class', 'onoffswitch-checkbox')
                 .attr('id', 'dgServiceSwitch')
                 .on('change', function() {
+                    //don't hide the profiles list
                     //profiles.classed('hide', function() { return !profiles.classed('hide'); });
-                    //Need to update visible db layers when service changes
 
                     // The first time the user switches to EGD
                     // if the connect id is set to prompt
@@ -462,6 +462,12 @@ iD.ui.Background = function(context) {
                             dgServices.egd.connectId(cid);
                         }
                     }
+
+                    //Need to update current background when service changes
+                    var activeService = (d3.select(this).property('checked')) ? 'EGD' : 'GBM';
+                    var activeProfile = d3.select('.dgprofile.active').datum().value;
+                    var bsource = dgServices.backgroundSource(activeService/*service*/, null/*connectId*/, activeProfile/*profile*/);
+                    clickSetSource(iD.BackgroundSource(bsource));
                 });
             var serviceLabel = serviceSwitch.append('label')
                 .attr('for', 'dgServiceSwitch')

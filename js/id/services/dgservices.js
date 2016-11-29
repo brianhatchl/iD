@@ -77,6 +77,9 @@ iD.dgservices  = function() {
             host = (proxy) ? gbm_proxy : gbm_host;
             connectid = connectId || gbm_connectId;
         } else if (service === 'EGD') {
+            //Always proxy EVWHS requests.  Until CORS is implemented on
+            //their WFS, all requests must use same protocol://host:port
+            //so that the basic auth headers work for everything
             host = (proxy) ? egd_proxy : egd_proxy;
             connectid = connectId || egd_connectId;
         }

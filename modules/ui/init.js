@@ -7,12 +7,14 @@ import { svgDefs, svgIcon } from '../svg/index';
 import { modeBrowse } from '../modes/index';
 import { behaviorHash } from '../behavior/index';
 import { utilGetDimensions } from '../util/dimensions';
+import { services } from '../services/index';
 
 import { uiAccount } from './account';
 import { uiAttribution } from './attribution';
 import { uiBackground } from './background';
 import { uiContributors } from './contributors';
 import { uiFeatureInfo } from './feature_info';
+import { uiDgCarousel } from './dgcarousel';
 import { uiFullScreen } from './full_screen';
 import { uiGeolocate } from './geolocate';
 import { uiHelp } from './help';
@@ -132,6 +134,12 @@ export function uiInit(context) {
             .append('div')
             .attr('class', 'map-control background-control')
             .call(uiBackground(context));
+
+        if (services.dg.enabled) {
+            controls.append('div')
+                .attr('class', 'map-control carousel-control')
+                .call(uiDgCarousel(context));
+        }
 
         controls
             .append('div')

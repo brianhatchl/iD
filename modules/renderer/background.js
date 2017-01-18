@@ -114,6 +114,35 @@ export function rendererBackground(context) {
         });
     };
 
+    background.addSource = function(d) {
+        var source = iD.BackgroundSource(d);
+        backgroundSources.push(source);
+        background.toggleOverlayLayer(source);
+    };
+
+    background.updateSource = function(d) {
+        var source = findSource(d.id);
+        for (var i = backgroundSources.length-1; i >= 0; i--) {
+            var layer = backgroundSources[i];
+            if (layer === source) {
+                backgroundSources[i] = iD.BackgroundSource(d);
+                background.addOrUpdateOverlayLayer(backgroundSources[i]);
+                break;
+            }
+        }
+    };
+
+    background.removeSource = function(d) {
+        var source = findSource(d.id);
+        for (var i = backgroundSources.length-1; i >= 0; i--) {
+            var layer = backgroundSources[i];
+            if (layer === source) {
+                backgroundSources.splice(i, 1);
+                background.toggleOverlayLayer(source);
+                break;
+            }
+        }
+    };
 
     background.dimensions = function(_) {
         if (!_) return;
@@ -142,6 +171,10 @@ export function rendererBackground(context) {
     background.showsLayer = function(d) {
         return d === baseLayer.source() ||
             (d.id === 'custom' && baseLayer.source().id === 'custom') ||
+            (d.name() === 'DigitalGlobe Imagery' && (baseLayer.source().id && baseLayer.source().id.indexOf('DigitalGlobe') === 0)) ||
+            (d.name() === 'DigitalGlobe Imagery Collection' && overlayLayers.some(function(l) {
+                return l.source().id  === 'dgCollection';
+            })) ||
             overlayLayers.some(function(l) { return l.source() === d; });
     };
 
@@ -156,7 +189,7 @@ export function rendererBackground(context) {
 
         for (var i = 0; i < overlayLayers.length; i++) {
             layer = overlayLayers[i];
-            if (layer.source() === d) {
+            if (layer.source() === d || (d.id === 'dgCollection' && d.id === layer.source().id)) {
                 overlayLayers.splice(i, 1);
                 dispatch.call('change');
                 background.updateImagery();
@@ -174,6 +207,31 @@ export function rendererBackground(context) {
         background.updateImagery();
     };
 
+    background.addOrUpdateOverlayLayer = function(d) {
+        var layer;
+
+        for (var i = 0; i < overlayLayers.length; i++) {
+            layer = overlayLayers[i];
+            if (d.id === layer.source().id) {
+                overlayLayers.splice(i, 1);
+            }
+        }
+
+        layer = iD.TileLayer(context)
+            .source(d)
+            .projection(context.projection)
+            .dimensions(baseLayer.dimensions());
+
+        overlayLayers.push(layer);
+        dispatch.call('change');
+        background.updateImagery();
+    };
+
+    background.updateFootprintLayer = function(d) {
+        var footprint = context.layers().layer('dg-footprint');
+        footprint.geojson(d);
+        dispatch.call('change');
+    };
 
     background.nudge = function(d, zoom) {
         baseLayer.source().nudge(d, zoom);

@@ -6,6 +6,7 @@ import { rendererBackgroundSource } from '../renderer/index';
 import { geoMetersToOffset, geoOffsetToMeters } from '../geo/index';
 import { utilDetect } from '../util/detect';
 import { utilSetTransform } from '../util/index';
+import { services } from '../services/index';
 import { svgIcon } from '../svg/index';
 import { uiMapInMap } from './map_in_map';
 import { uiCmd } from './cmd';
@@ -25,6 +26,7 @@ export function uiBackground(context) {
         opacityDefault = (context.storage('background-opacity') !== null) ?
             (+context.storage('background-opacity')) : 1.0,
         customTemplate = context.storage('background-custom-template') || '',
+        dgServices = services.dg,
         previous;
 
     // Can be 0 from <1.3.0 use or due to issue #1923.
@@ -88,12 +90,30 @@ export function uiBackground(context) {
                 return context.background().showsLayer(d);
             }
 
-            content.selectAll('.layer, .custom_layer')
+            content.selectAll('.layer, .custom_layer, .dg_layer')
                 .classed('active', active)
                 .classed('switch', function(d) { return d === previous; })
                 .call(setTooltips)
                 .selectAll('input')
                 .property('checked', active);
+        }
+
+
+        function selectProfile(value) {
+            function active(d) {
+                return d === value;
+            }
+            profiles.selectAll('li')
+                .classed('active', active);
+        }
+
+
+        function selectCollection(value) {
+            function active(d) {
+                return d === value;
+            }
+            collections.selectAll('li')
+                .classed('active', active);
         }
 
 
@@ -136,6 +156,13 @@ export function uiBackground(context) {
         }
 
 
+        function clickAddOrUpdateOverlay(d) {
+            d3.event.preventDefault();
+            context.background().addOrUpdateOverlayLayer(d);
+            selectLayer();
+        }
+
+
         function drawList(layerList, type, change, filter) {
             var sources = context.background()
                 .sources(context.map().extent())
@@ -148,7 +175,7 @@ export function uiBackground(context) {
                 .remove();
 
             var enter = layerLinks.enter()
-                .insert('li', '.custom_layer')
+                .insert('li', '.dg_layer')
                 .attr('class', 'layer')
                 .classed('best', function(d) { return d.best(); });
 
@@ -440,6 +467,102 @@ export function uiBackground(context) {
             .append('span')
             .text(t('background.custom'));
 
+
+        if (dgServices.enabled()) {
+            var dgbackground = backgroundList.append('li')
+                .attr('class', 'dg_layer')
+                .call(tooltip()
+                    .title(t('background.dgbg_tooltip'))
+                    .placement('top'))
+                .datum(dgServices.backgroundSource());
+
+            dgbackground.append('button')
+                .attr('class', 'dg-layer-profile')
+                .call(tooltip()
+                    .title(t('background.dgbg_button'))
+                    .placement('left'))
+                .on('click', function () {
+                    d3.event.preventDefault();
+                    profiles.classed('hide', function() { return !profiles.classed('hide'); });
+                })
+                .call(svgIcon('#icon-layers'));
+
+            label = dgbackground.append('label');
+
+            label.append('input')
+                .attr('type', 'radio')
+                .attr('name', 'layers')
+                .on('change', function(d) {
+                    d3.event.preventDefault();
+                    clickSetSource(iD.BackgroundSource(d));
+                });
+
+            label.append('span')
+                .text(t('background.dgbg'));
+
+            var profiles = content.append('div')
+            .attr('id', 'dgProfiles')
+            .attr('class', 'dgprofile hide'); //fillL map-overlay col3 content
+
+            //from http://proto.io/freebies/onoff/
+            var serviceSwitch = profiles.append('div')
+                .attr('class', 'onoffswitch');
+            serviceSwitch.append('input')
+                .attr('type', 'checkbox')
+                .attr('name', 'onoffswitch')
+                .attr('class', 'onoffswitch-checkbox')
+                .attr('id', 'dgServiceSwitch')
+                .on('change', function() {
+                    //don't hide the profiles list
+                    //profiles.classed('hide', function() { return !profiles.classed('hide'); });
+
+                    // The first time the user switches to EGD
+                    // if the connect id is set to prompt
+                    // ask the user for their connect id
+                    if (d3.select(this).property('checked')) {
+                        if (dgServices.egdConnectId() === 'prompt') {
+                            var cid = window.prompt('Enter your EV WHS Connect ID');
+                            dgServices.egdConnectId(cid);
+                        }
+                    }
+
+                    //Need to update current background when service changes
+                    var activeService = (d3.select(this).property('checked')) ? 'EGD' : 'GBM';
+                    var activeProfile = d3.select('.dgprofile.active').datum().value;
+                    var bsource = dgServices.backgroundSource(activeService/*service*/, null/*connectId*/, activeProfile/*profile*/);
+                    clickSetSource(iD.BackgroundSource(bsource));
+                });
+            var serviceLabel = serviceSwitch.append('label')
+                .attr('for', 'dgServiceSwitch')
+                .attr('class', 'onoffswitch-label');
+            serviceLabel.append('div')
+                .attr('class', 'onoffswitch-inner');
+            serviceLabel.append('div')
+                .attr('class', 'onoffswitch-switch');
+
+            var profileList = profiles.append('ul')
+                .attr('class', 'layer-list');
+
+            profileList.selectAll('li')
+                .data(dgServices.profiles()).enter()
+                .append('li')
+                .attr('class', function(d) {
+                    return (dgServices.defaultProfile() === d) ? 'dgprofile active' : 'dgprofile';
+                })
+                .text(function(d) { return t('background.dgbg_profiles.' + d); })
+                .attr('value', function(d) { return d; })
+                .on('click', function(d) {
+                    d3.event.preventDefault();
+                    selectProfile(d);
+                    var activeService = (serviceSwitch.selectAll('input').property('checked')) ? 'EGD' : 'GBM';
+                    var bsource = dgServices.backgroundSource(activeService/*service*/, null/*connectId*/, d/*profile*/);
+                    clickSetSource(iD.BackgroundSource(bsource));
+                    //Update radio button datum for dgbackground
+                    dgbackground.selectAll('input').datum(bsource);
+                });
+        }
+
+
         content
             .append('div')
             .attr('class', 'imagery-faq')
@@ -454,6 +577,64 @@ export function uiBackground(context) {
         var overlayList = content
             .append('ul')
             .attr('class', 'layer-list');
+
+
+        if (dgServices.enabled()) {
+            var dgcollection = overlayList.append('li')
+            .attr('class', 'dg_layer')
+            .call(tooltip()
+                .title(t('background.dgcl_tooltip'))
+                .placement('top'))
+            .datum(dgServices.collectionSource());
+
+            dgcollection.append('button')
+                .attr('class', 'dg-layer-profile')
+                .call(tooltip()
+                    .title(t('background.dgcl_button'))
+                    .placement('left'))
+                .on('click', function() {
+                    d3.event.preventDefault();
+                    collections.classed('hide', function() { return !collections.classed('hide'); });
+                })
+                .call(svgIcon('#icon-layers'));
+
+            label = dgcollection.append('label');
+
+            label.append('input')
+                .attr('type', 'checkbox')
+                .attr('name', 'layers')
+                .on('change', function() {
+                    d3.event.preventDefault();
+                    var activeService = (serviceSwitch.selectAll('input').property('checked')) ? 'EGD' : 'GBM';
+                    clickSetOverlay(iD.BackgroundSource(dgServices.collectionSource(activeService)));
+                });
+
+            label.append('span')
+                .text(t('background.dgcl'));
+
+            var collections = content.append('div')
+            .attr('class', 'dgprofile hide'); //fillL map-overlay col3 content
+
+            var collectionList = collections.append('ul')
+                .attr('class', 'layer-list');
+
+            collectionList.selectAll('li')
+                .data(dgServices.collections()).enter()
+                .append('li')
+                .attr('class', function(d) {
+                    return (dgServices.defaultCollection() === d) ? 'dgprofile active' : 'dgprofile';
+                })
+                .text(function(d) { return t('background.dgcl_collections.' + d); })
+                .attr('value', function(d) { return d; })
+                .on('click', function(d) {
+                    d3.event.preventDefault();
+                    selectCollection(d);
+                    var activeService = (serviceSwitch.selectAll('input').property('checked')) ? 'EGD' : 'GBM';
+                    //var activeProfile = profiles.selectAll('li.active').attr('value');
+                    clickAddOrUpdateOverlay(iD.BackgroundSource(dgServices.collectionSource(activeService/*service*/, null/*connectId*/, 'Default_Profile'/*profile*/, d/*freshness*/)));
+                });
+        }
+
 
         var controls = content
             .append('div')

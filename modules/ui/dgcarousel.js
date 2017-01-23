@@ -43,7 +43,7 @@ export function uiDgCarousel(context) {
                         .transition()
                         .duration(200)
                         .style('right', '-200px')
-                        .each('end', function() {
+                        .on('end', function() {
                             d3.select(this).style('display', 'none');
                         });
                     selection.on('mousedown.carousel-inside', null);
@@ -55,13 +55,7 @@ export function uiDgCarousel(context) {
 
         pane.append('div')
             .attr('class', 'dgarrow up')
-            .on('click', function() {
-                var scrollable = d3.select('#dgCarouselThumbnails');
-                var clientheight = scrollable.property('clientHeight');
-                var scrolltop = scrollable.property('scrollTop');
-                scrollable.transition().duration(1500)
-                    .tween('uniquetweenname', scrollTopTween(scrolltop - clientheight));
-            });
+            .on('click', scrollTopTween);
 
         var metadiv = pane.append('div')
             .attr('id', 'dgCarouselThumbnails')
@@ -69,19 +63,18 @@ export function uiDgCarousel(context) {
 
         pane.append('div')
             .attr('class', 'dgarrow down')
-            .on('click', function() {
-                var scrollable = d3.select('#dgCarouselThumbnails');
-                var clientheight = scrollable.property('clientHeight');
-                var scrolltop = scrollable.property('scrollTop');
-                scrollable.transition().duration(1500)
-                    .tween('uniquetweenname', scrollTopTween(scrolltop + clientheight));
-            });
+            .on('click', scrollTopTween);
 
-        function scrollTopTween(scrollTop) {
-            return function() {
-                var i = d3.interpolateNumber(this.scrollTop, scrollTop);
-                return function(t) { this.scrollTop = i(t); };
-            };
+        function scrollTopTween() {
+            var clientheight = metadiv.property('clientHeight');
+            var scrolltop = metadiv.property('scrollTop');
+            var newValue = d3.select(this).classed('down') ? scrolltop + clientheight : scrolltop - clientheight;
+            metadiv.transition().duration(1500)
+                .tween('uniquetweenname', function() {
+                    var node = this,
+                        i = d3.interpolateNumber(this.scrollTop, newValue);
+                    return function(t) { node.scrollTop = i(t); };
+                });
         }
 
 //        function mouseWheelScroll() {

@@ -64,6 +64,7 @@ dist/iD.js: \
 	js/id/start.js \
 	js/id/id.js \
 	js/id/services.js \
+	js/id/services/dgservices.js \
 	js/id/services/mapillary.js \
 	js/id/services/nominatim.js \
 	js/id/services/taginfo.js \
@@ -162,6 +163,7 @@ dist/iD.js: \
 	js/id/renderer/background.js \
 	js/id/renderer/background_source.js \
 	js/id/renderer/features.js \
+	js/id/renderer/footprint_layer.js \
 	js/id/renderer/map.js \
 	js/id/renderer/tile_layer.js \
 	js/id/svg.js \
@@ -272,7 +274,7 @@ dist/iD.min.js: dist/iD.js Makefile
 	node_modules/.bin/uglifyjs $< -c -m -o $@
 
 dist/iD.css: css/*.css
-	cat css/reset.css css/map.css css/app.css > $@
+	cat css/reset.css css/map.css css/app.css css/dgcarousel.css > $@
 
 node_modules/.install: package.json
 	npm install

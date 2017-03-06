@@ -79,6 +79,12 @@ iD.ui = function(context) {
             .attr('class', 'map-control background-control')
             .call(iD.ui.Background(context));
 
+        if (context.dgservices().enabled) {
+            controls.append('div')
+                .attr('class', 'map-control carousel-control')
+                .call(iD.ui.dgCarousel(context));
+        }
+
         controls.append('div')
             .attr('class', 'map-control map-data-control')
             .call(iD.ui.MapData(context));

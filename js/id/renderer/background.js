@@ -1,6 +1,8 @@
 iD.Background = function(context) {
     var dispatch = d3.dispatch('change'),
         baseLayer = iD.TileLayer(context).projection(context.projection),
+        //Added for DG-plugin
+        footprintLayer = iD.FootprintLayer(context, dispatch).projection(context.projection),
         overlayLayers = [],
         backgroundSources;
 
@@ -35,6 +37,15 @@ iD.Background = function(context) {
 
         overlays.exit()
             .remove();
+
+        //Added for DG-plugin
+        var footprint = selection.selectAll('.footprint-layer')
+        .data([0]);
+
+        footprint.enter().insert('div', '.layer-data')
+            .attr('class', 'layer footprint-layer');
+
+        footprint.call(footprintLayer);
     }
 
 
@@ -105,8 +116,39 @@ iD.Background = function(context) {
         });
     };
 
+    background.addSource = function(d) {
+        var source = iD.BackgroundSource(d);
+        backgroundSources.push(source);
+        background.toggleOverlayLayer(source);
+    };
+
+    background.updateSource = function(d) {
+        var source = findSource(d.id);
+        for (var i = backgroundSources.length-1; i >= 0; i--) {
+            var layer = backgroundSources[i];
+            if (layer === source) {
+                backgroundSources[i] = iD.BackgroundSource(d);
+                background.addOrUpdateOverlayLayer(backgroundSources[i]);
+                break;
+            }
+        }
+    };
+
+    background.removeSource = function(d) {
+        var source = findSource(d.id);
+        for (var i = backgroundSources.length-1; i >= 0; i--) {
+            var layer = backgroundSources[i];
+            if (layer === source) {
+                backgroundSources.splice(i, 1);
+                if (background.showsLayer(source)) background.toggleOverlayLayer(source);
+                break;
+            }
+        }
+    };
+
     background.dimensions = function(_) {
         baseLayer.dimensions(_);
+        footprintLayer.dimensions(_);
 
         overlayLayers.forEach(function(layer) {
             layer.dimensions(_);
@@ -128,6 +170,11 @@ iD.Background = function(context) {
     background.showsLayer = function(d) {
         return d === baseLayer.source() ||
             (d.id === 'custom' && baseLayer.source().id === 'custom') ||
+            //Added for DG-plugin
+            (d.name() === 'DigitalGlobe Imagery' && (baseLayer.source().id && baseLayer.source().id.indexOf('DigitalGlobe') === 0)) ||
+            (d.name() === 'DigitalGlobe Imagery Collection' && overlayLayers.some(function(l) {
+                return l.source().id  === 'dgCollection';
+            })) ||
             overlayLayers.some(function(l) { return l.source() === d; });
     };
 
@@ -140,7 +187,7 @@ iD.Background = function(context) {
 
         for (var i = 0; i < overlayLayers.length; i++) {
             layer = overlayLayers[i];
-            if (layer.source() === d) {
+            if (layer.source() === d || (d.id === 'dgCollection' && d.id === layer.source().id)) {
                 overlayLayers.splice(i, 1);
                 dispatch.change();
                 background.updateImagery();
@@ -156,6 +203,31 @@ iD.Background = function(context) {
         overlayLayers.push(layer);
         dispatch.change();
         background.updateImagery();
+    };
+
+    background.addOrUpdateOverlayLayer = function(d) {
+        var layer;
+
+        for (var i = 0; i < overlayLayers.length; i++) {
+            layer = overlayLayers[i];
+            if (d.id === layer.source().id) {
+                overlayLayers.splice(i, 1);
+            }
+        }
+
+        layer = iD.TileLayer(context)
+            .source(d)
+            .projection(context.projection)
+            .dimensions(baseLayer.dimensions());
+
+        overlayLayers.push(layer);
+        dispatch.change();
+        background.updateImagery();
+    };
+
+    background.updateFootprintLayer = function(d) {
+        footprintLayer.geojson(d);
+        dispatch.change();
     };
 
     background.nudge = function(d, zoom) {

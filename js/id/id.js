@@ -252,7 +252,8 @@ window.iD = function () {
         background.load(_);
         return context;
     };
-
+    var dgservices;
+    context.dgservices = function() { return dgservices; };
 
     /* Container */
     var container, embed;
@@ -380,6 +381,8 @@ window.iD = function () {
     context.redrawEnable = map.redrawEnable;
 
     presets = iD.presets();
+
+    dgservices = iD.dgservices();
 
     return d3.rebind(context, dispatch, 'on');
 };

@@ -1,0 +1,12 @@
+{
+  "name": "dg-plugin-proxy",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "express": "*",
+    "express-http-proxy": "*"
+  },
+  "scripts": {
+    "start": "node app.js"
+  }
+}

@@ -140,7 +140,7 @@ iD.Background = function(context) {
             var layer = backgroundSources[i];
             if (layer === source) {
                 backgroundSources.splice(i, 1);
-                background.toggleOverlayLayer(source);
+                if (background.showsLayer(source)) background.toggleOverlayLayer(source);
                 break;
             }
         }

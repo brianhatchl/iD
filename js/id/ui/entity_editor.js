@@ -51,6 +51,18 @@ iD.ui.EntityEditor = function(context) {
         $enter = $body.enter().append('div')
             .attr('class', 'inspector-body');
 
+        var schemaSwitcher = iD.ui.SchemaSwitcher(context);
+        $enter.append('div').call(schemaSwitcher, function() {
+             //Do we need to translate tags?
+            if (context.hoot().activeTranslation() !== 'OSM') {
+                var entity = context.entity(context.selectedIDs()[0]);
+                context.hoot().translateEntity(entity, updateTags);
+            } else {
+                var entity = context.entity(context.selectedIDs()[0]);
+                updateTags(context.presets().match(entity, context.graph()), entity.tags);
+            }
+        });
+
         $enter.append('div')
             .attr('class', 'preset-list-item inspector-inner')
             .append('div')
@@ -92,6 +104,14 @@ iD.ui.EntityEditor = function(context) {
                 .geometry(context.geometry(id))
                 .preset(preset));
 
+        //Do we need to translate tags?
+        if (context.hoot().activeTranslation() !== 'OSM' && !_.isEmpty(entity.tags)) {
+            context.hoot().translateEntity(entity, updateTags);
+        } else {
+            updateTags(preset, tags);
+        }
+
+    function updateTags(preset, tags) {
         $body.select('.preset-list-item .label')
             .text(preset.name());
 
@@ -123,6 +143,10 @@ iD.ui.EntityEditor = function(context) {
             .call(iD.ui.RawMembershipEditor(context)
                 .entityID(id));
 
+        context.history()
+            .on('change.entity-editor', historyChanged);
+    }
+
         function historyChanged() {
             if (state === 'hide') return;
 
@@ -135,8 +159,6 @@ iD.ui.EntityEditor = function(context) {
             entityEditor(selection);
         }
 
-        context.history()
-            .on('change.entity-editor', historyChanged);
     }
 
     function clean(o) {
@@ -181,7 +203,7 @@ iD.ui.EntityEditor = function(context) {
 
     // Tag changes that fire on input can all get coalesced into a single
     // history operation when the user leaves the field.  #2342
-    function changeTags(changed, onInput) {
+    function changeTagsCallback(changed, onInput) {
         var entity = context.entity(id),
             annotation = t('operations.change_tags.annotation'),
             tags = _.extend({}, entity.tags, changed);
@@ -197,6 +219,39 @@ iD.ui.EntityEditor = function(context) {
                 coalesceChanges = !!onInput;
             }
         }
+    }
+
+    function changeTags(changed, onInput) {
+        var translatedTags = rawTagEditor.tags();
+        var entity = context.entity(id);
+        //Do we need to translate tags?
+        if (context.hoot().activeTranslation() !== 'OSM' && !_.isEmpty(entity.tags)) {
+            //Don't call translate on input events like keypress
+            //wait til the field loses focus
+            if (!onInput) {
+                //some changeTags events fire even when tag hasn't changed
+                if (d3.entries(changed).every(function(c) {
+                    return d3.entries(translatedTags).some(function(d) {
+                         //tag hasn't changed or has empty key or value
+                         return (c.key === d.key && c.value === d.value) || c.value === '' || c.key === '';
+                    });
+                })) {
+                    return; //return if no real change
+                }
+
+                //deleted tags are represented as undefined
+                //remove these before translating
+                var translatedEntity = entity.copy(context.graph(), []);
+                translatedEntity.tags = d3.entries(_.assign(translatedTags, changed)).reduce(function(tags, tag) {
+                    if (tag.value !== undefined) tags[tag.key] = tag.value;
+                    return tags;
+                }, {});
+                context.hoot().translateToOsm(entity.tags, translatedEntity, onInput, changeTagsCallback);
+            }
+        } else {
+            changeTagsCallback(changed, onInput);
+        }
+
     }
 
     entityEditor.modified = function(_) {

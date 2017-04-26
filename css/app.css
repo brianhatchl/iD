@@ -1104,7 +1104,8 @@ button.save.has-count .count::before {
 
 /* Unstyle button fields */
 .inspector-hover .toggle-list label.active,
-.inspector-hover .entity-editor-pane a.hide-toggle {
+.inspector-hover .entity-editor-pane a.hide-toggle,
+.inspector-hover .entity-editor-pane .tag-schema label{
     opacity: 1;
     background-color: transparent;
     color: #666;
@@ -1145,6 +1146,16 @@ button.save.has-count .count::before {
 
 .more-fields label { padding: 5px 10px 5px 0; }
 .more-fields input { width: 50%;}
+
+/* schema-switcher */
+
+.tag-schema {
+    padding: 20px 20px 0 20px;
+    font-weight: bold;
+}
+
+.tag-schema label { padding: 5px 10px 5px 0; }
+.tag-schema input { width: 50%;}
 
 /* preset form access */
 

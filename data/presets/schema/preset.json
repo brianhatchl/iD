@@ -68,6 +68,18 @@
             "description": "The quality score this preset will receive when being compared with other matches (higher is better)",
             "type": "number",
             "default": 1.0
+        },
+        "hoot:featuretype": {
+            "description": "The feature type",
+            "type": "string"
+        },
+        "hoot:tagschema": {
+            "description": "The translated tag schema",
+            "type": "string"
+        },
+        "hoot:fcode": {
+            "description": "The feature code",
+            "type": "string"
         }
     },
     "additionalProperties": false

@@ -19,7 +19,7 @@ iD.ui.preset = function(context) {
         field.show = show;
 
         field.shown = function() {
-            return field.id === 'name' || field.show || _.some(field.keys, function(key) { return !!tags[key]; });
+            return (field.id === 'name' && context.hoot().activeTranslation() === 'OSM') || field.show || _.some(field.keys, function(key) { return !!tags[key]; });
         };
 
         field.modified = function() {
@@ -80,7 +80,8 @@ iD.ui.preset = function(context) {
 
             preset.fields.forEach(function(field) {
                 if (field.matchGeometry(geometry)) {
-                    fields.push(UIField(field, entity, true));
+                    //if a field has a show propery, use it
+                    fields.push(UIField(field, entity, (field.show === undefined) ? true : field.show));
                 }
             });
 
@@ -175,6 +176,13 @@ iD.ui.preset = function(context) {
         $fields.exit()
             .remove();
 
+        //If the active schema translation is not OSM
+        //filter out non-schema fields
+        if (context.hoot().activeTranslation() !== 'OSM') {
+            notShown = notShown.filter(function(f) {
+                return f.id.startsWith(context.hoot().activeTranslation());
+            });
+        }
         notShown = notShown.map(function(field) {
             return {
                 title: field.label(),

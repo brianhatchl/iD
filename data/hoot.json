@@ -1,0 +1,5 @@
+{
+    "presetMaxLevDistance" : 20,
+    "presetMaxDisplayNum" : 12,
+    "translationServerPort": 8094
+}

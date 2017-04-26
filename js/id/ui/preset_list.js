@@ -68,16 +68,40 @@ iD.ui.PresetList = function(context) {
         function inputevent() {
             var value = search.property('value');
             list.classed('filtered', value.length);
+
             if (value.length) {
-                var results = presets.search(value, geometry);
+                var tagSchema = context.hoot().activeTranslation();
+                var results = presets.search(value, geometry).matchSchema(context.hoot().activeTranslation());
+                if(tagSchema === context.hoot().defaultTranslation()) {
+                    searchHandler(value, results);
+                } else {
+                //Add translation server search for translated tag schemas
+                    context.hoot().searchTranslatedSchema(value, geometry, function(data){
+                        var translatedPresets = data.map(function(d) {
+                            return iD.presets.Preset(tagSchema + '/' + d.fcode,
+                                {
+                                    geometry: geometry,
+                                    tags: {},
+                                    'hoot:featuretype': d.desc,
+                                    'hoot:tagschema': tagSchema,
+                                    'hoot:fcode': d.fcode,
+                                    name: d.desc + ' (' + d.fcode + ')'
+                                }, {});
+                        });
+                        searchHandler(value, iD.presets.Collection(results.collection.concat(translatedPresets)));
+                    });
+                }
+            } else {
+                list.call(drawList, context.presets().defaults(geometry, 72).matchSchema(context.hoot().activeTranslation()));
+                message.text(t('inspector.choose'));
+            }
+
+            function searchHandler(value, results) {
                 message.text(t('inspector.results', {
                     n: results.collection.length,
                     search: value
                 }));
                 list.call(drawList, results);
-            } else {
-                list.call(drawList, context.presets().defaults(geometry, 36));
-                message.text(t('inspector.choose'));
             }
         }
 
@@ -102,9 +126,19 @@ iD.ui.PresetList = function(context) {
         var listWrap = selection.append('div')
             .attr('class', 'inspector-body');
 
+        var schemaSwitcher = iD.ui.SchemaSwitcher(context);
+        listWrap.append('div').classed('fillL', true)
+            .append('div').call(schemaSwitcher, function() {
+                list.selectAll('.preset-list-item').remove();
+                list.call(drawList, context.presets().defaults(geometry, 72).matchSchema(context.hoot().activeTranslation()));
+
+                // Trigger search on input value
+                //search.trigger('input');
+            });
+
         var list = listWrap.append('div')
             .attr('class', 'preset-list fillL cf')
-            .call(drawList, context.presets().defaults(geometry, 36));
+            .call(drawList, context.presets().defaults(geometry, 72).matchSchema(context.hoot().activeTranslation()));
     }
 
     function drawList(list, presets) {
@@ -217,11 +251,22 @@ iD.ui.PresetList = function(context) {
         item.choose = function() {
             context.presets().choose(preset);
 
-            context.perform(
-                iD.actions.ChangePreset(id, currentPreset, preset),
-                t('operations.change_tags.annotation'));
+            var tagSchema = context.hoot().activeTranslation();
+            if (tagSchema === 'OSM') {
+                context.perform(
+                    iD.actions.ChangePreset(id, currentPreset, preset),
+                    t('operations.change_tags.annotation'));
 
-            dispatch.choose(preset);
+                dispatch.choose(preset);
+            } else {
+                context.hoot().addTagsForFcode(preset, function(preset) {
+                    context.perform(
+                        iD.actions.ChangePreset(id, currentPreset, preset),
+                        t('operations.change_tags.annotation'));
+
+                    dispatch.choose(preset);
+                });
+            }
         };
 
         item.help = function() {

@@ -20,7 +20,8 @@ iD.data = {
             path + 'data/name-suggestions.json',
             path + 'data/address-formats.json',
             path + 'data/phone-formats.json',
-            path + 'data/drive-left.json'
+            path + 'data/drive-left.json',
+            path + 'data/hoot.json'
             ], d3.json, function (err, data) {
 
             iD.data = {
@@ -41,7 +42,8 @@ iD.data = {
                 suggestions: data[12],
                 addressFormats: data[13],
                 phoneFormats: data[14],
-                driveLeft: data[15]
+                driveLeft: data[15],
+                hoot: data[16]
             };
 
             callback();

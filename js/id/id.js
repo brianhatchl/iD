@@ -328,6 +328,9 @@ window.iD = function () {
         }
     };
 
+    /* Hootenanny */
+    var hoot;
+    context.hoot = function() { return hoot; };
 
     /* Init */
 
@@ -380,6 +383,8 @@ window.iD = function () {
     context.redrawEnable = map.redrawEnable;
 
     presets = iD.presets();
+
+    hoot = iD.hoot(context);
 
     return d3.rebind(context, dispatch, 'on');
 };

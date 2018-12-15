@@ -229,13 +229,33 @@ export function coreContext() {
 
     /* Modes */
     var mode;
+    var _lock, _lockMode, _cloneTags;
     context.mode = function() {
         return mode;
     };
-    context.enter = function(newMode) {
+    context.lock = function() {
+        return _lock;
+    };
+    context.lockMode = function() {
+        return _lockMode;
+    };
+    context.cloneTags = function() {
+        return _cloneTags;
+    };
+    context.enter = function(newMode, lock, cloneTags) {
         if (mode) {
             mode.exit();
             dispatch.call('exit', this, mode);
+        }
+
+        if (lock !== undefined) {
+            _lock = lock;
+            if (lock) {
+                _lockMode = newMode;
+            }
+        }
+        if (cloneTags !== undefined) {
+            _cloneTags = cloneTags;
         }
 
         mode = newMode;

@@ -105,7 +105,7 @@ export function uiModes(context) {
                     if (mode.id === currMode) {
                         context.enter(modeBrowse(context));
                     } else {
-                        context.enter(mode);
+                        context.enter(mode, false/*lock*/, {}/*cloneTags*/);
                     }
                 })
                 .call(tooltip()

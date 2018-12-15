@@ -5,11 +5,14 @@ import {
     select as d3_select
 } from 'd3-selection';
 
+import _isEmpty from 'lodash-es/isEmpty';
+
 import {
     actionAddMidpoint,
     actionMoveNode,
     actionNoop
 } from '../actions';
+import { actionChangeTags } from '../actions/index';
 
 import { behaviorDraw } from './draw';
 import { geoChooseEdge, geoHasSelfIntersections } from '../geo';
@@ -318,7 +321,23 @@ export function behaviorDrawWay(context, wayId, index, mode, startGraph) {
             context.map().dblclickEnable(true);
         }, 1000);
 
+        //Apply cloned tags to new feature [part of tool/preset lock]
+        if (!_isEmpty(context.cloneTags())) {
+            context.perform(
+                actionChangeTags(wayId, context.cloneTags()),
+                t('operations.change_tags.annotation')
+            );
+        }
+
         context.enter(modeSelect(context, [wayId]).newFeature(true));
+
+        //Re-activate locked tool [part of tool/preset lock]
+        //We can't disable entering select mode because
+        //that seems to perform some role in completing
+        //the last vertex of the feature
+        if (context.lock()) {
+            context.enter(context.lockMode());
+        }
     };
 
 

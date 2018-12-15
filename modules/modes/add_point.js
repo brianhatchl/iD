@@ -1,5 +1,7 @@
+import _isEmpty from 'lodash-es/isEmpty';
 import { t } from '../util/locale';
 import { actionAddEntity } from '../actions';
+import { actionChangeTags } from '../actions';
 import { behaviorDraw } from '../behavior';
 import { modeBrowse, modeSelect } from './index';
 import { osmNode } from '../osm';
@@ -32,9 +34,22 @@ export function modeAddPoint(context) {
             t('operations.add.annotation.point')
         );
 
+        //Apply cloned tags to new feature [part of tool/preset lock]
+        if (!_isEmpty(context.cloneTags())) {
+            context.perform(
+                actionChangeTags(node.id, context.cloneTags()),
+                t('operations.change_tags.annotation')
+            );
+        }
+
         context.enter(
             modeSelect(context, [node.id]).newFeature(true)
         );
+
+        //Re-activate locked tool [part of tool/preset lock]
+        if (context.lock()) {
+            context.enter(context.lockMode());
+        }
     }
 
 

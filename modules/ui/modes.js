@@ -57,6 +57,8 @@ export function uiModes(context) {
 
         modes.forEach(function(mode) {
             context.keybinding().on(mode.key, function() {
+                if (context.lock()) restoreLockedModeButton(context.mode());
+
                 if (mode.id === 'add-note' && !(notesEnabled() && notesEditable())) return;
                 if (mode.id !== 'add-note' && !editable()) return;
 
@@ -65,6 +67,8 @@ export function uiModes(context) {
                 } else {
                     context.enter(mode);
                 }
+
+
             });
         });
 
@@ -99,14 +103,17 @@ export function uiModes(context) {
                 .attr('class', function(d) { return d.id + ' add-button'; })
                 .on('click.mode-buttons', function(mode) {
                     // When drawing, ignore accidental clicks on mode buttons - #4042
-                    var currMode = context.mode().id;
-                    if (currMode.match(/^draw/) !== null) return;
+                    var currMode = context.mode();
+                    if (context.lock()) restoreLockedModeButton(currMode);
 
-                    if (mode.id === currMode) {
+                    if (currMode.id.match(/^draw/) !== null) return;
+
+                    if (mode.id === currMode.id) {
                         context.enter(modeBrowse(context));
                     } else {
                         context.enter(mode, false/*lock*/, {}/*cloneTags*/);
                     }
+
                 })
                 .call(tooltip()
                     .placement('bottom')
@@ -139,5 +146,20 @@ export function uiModes(context) {
                     return d.id === 'add-note' ? !notesEditable() : !editable();
                 });
         }
+
+
+        function restoreLockedModeButton(currMode) {
+            var currButton = d3_select('button.' + currMode.id);
+            currButton.call(svgIcon('#iD-icon-' + currMode.button));
+            currButton.selectAll('span').text(currMode.title);
+            currButton.call(tooltip()
+                .placement('bottom')
+                .html(true)
+                .title(function(currMode) {
+                    return uiTooltipHtml(currMode.description, currMode.key);
+                })
+            );
+        }
+
     };
 }

@@ -1,6 +1,10 @@
 import { t } from '../util/locale';
 import { behaviorOperation } from '../behavior/index';
 import _clone from 'lodash-es/clone';
+import { select as d3_select } from 'd3-selection';
+import { svgIcon } from '../svg';
+import { tooltip } from '../util/tooltip';
+import { uiTooltipHtml } from '../ui/tooltipHtml';
 
 import {
     modeAddArea,
@@ -13,6 +17,13 @@ export function operationCreateMore(selectedIDs, context) {
     var entityId = selectedIDs[0];
     var entity = context.hasEntity(entityId);
     var cloneTags = _clone(entity.tags);
+    var preset, isMake, icon;
+    preset = context.presets().match(entity,  context.graph());
+    if (preset) {
+        isMaki = /^maki-/.test(preset.icon);
+        icon = '#' + preset.icon + (isMaki ? '-11' : '');
+    }
+
     var mode;
     switch (entity.type) {
         case 'node':
@@ -25,6 +36,19 @@ export function operationCreateMore(selectedIDs, context) {
 
     var operation = function() {
         context.enter(mode, true/*lock*/, cloneTags);
+        if (preset) {
+            var button = d3_select('button.add-button.active');
+            button.call(svgIcon(icon));
+            button.selectAll('span')
+                .text(preset.name());
+            button.call(tooltip()
+                .placement('bottom')
+                .html(true)
+                .title(function(mode) {
+                    return uiTooltipHtml(t('operations.create_more.tooltip'), mode.key);
+                })
+            );
+        }
     };
 
 

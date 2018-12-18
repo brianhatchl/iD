@@ -76,6 +76,7 @@ en:
       annotation: Lock the draw tool with selected tags. To unlock, click any tool button.
       title: Create more like this
       description: Create more features like this by locking the draw tool with these tags.
+      tooltip: The drawing tool is locked with tags.
     orthogonalize:
       title: Square
       description:

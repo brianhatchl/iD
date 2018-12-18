@@ -17,8 +17,8 @@ export function operationCreateMore(selectedIDs, context) {
     var entityId = selectedIDs[0];
     var entity = context.hasEntity(entityId);
     var cloneTags = _clone(entity.tags);
-    var preset, isMake, icon;
-    preset = context.presets().match(entity,  context.graph());
+    var preset, isMaki, icon;
+    preset = context.presets().match(entity, context.graph());
     if (preset) {
         isMaki = /^maki-/.test(preset.icon);
         icon = '#' + preset.icon + (isMaki ? '-11' : '');
@@ -36,6 +36,7 @@ export function operationCreateMore(selectedIDs, context) {
 
     var operation = function() {
         context.enter(mode, true/*lock*/, cloneTags);
+        //Move this to modes.js
         if (preset) {
             var button = d3_select('button.add-button.active');
             button.call(svgIcon(icon));

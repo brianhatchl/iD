@@ -42,6 +42,7 @@ export function operationCreateMore(selectedIDs, context) {
             button.call(svgIcon(icon));
             button.selectAll('span')
                 .text(preset.name());
+            button.select('.tooltip').remove();
             button.call(tooltip()
                 .placement('bottom')
                 .html(true)

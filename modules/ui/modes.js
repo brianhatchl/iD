@@ -109,7 +109,7 @@ export function uiModes(context) {
                     if (currMode.id.match(/^draw/) !== null) return;
 
                     if (mode.id === currMode.id) {
-                        context.enter(modeBrowse(context));
+                        context.enter(modeBrowse(context), false/*lock*/, {}/*cloneTags*/);
                     } else {
                         context.enter(mode, false/*lock*/, {}/*cloneTags*/);
                     }
@@ -152,6 +152,7 @@ export function uiModes(context) {
             var currButton = d3_select('button.' + currMode.id);
             currButton.call(svgIcon('#iD-icon-' + currMode.button));
             currButton.selectAll('span').text(currMode.title);
+            currButton.select('.tooltip').remove();
             currButton.call(tooltip()
                 .placement('bottom')
                 .html(true)

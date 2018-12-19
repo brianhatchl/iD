@@ -1079,27 +1079,51 @@ a.hide-toggle {
     background-color: #ececec;
 }
 
+.preset-list-item button.preset-favorite-button,
 .preset-list-item button.tag-reference-button {
+    float: right;
     height: 100%;
+    flex: 0 0 32px;
     border: 1px solid #ccc;
-    border-radius: 0 3px 3px 0;
-    position: absolute;
+    border-radius: 0;
+    border-left-width: 0;
+    /*border-radius: 0 3px 3px 0;*/
+    /*position: absolute;*/
     top: 0;
     right: 0;
-    width: 32px;
+    /*width: 32px;*/
     background: #f6f6f6;
 }
+[dir='rtl'] .preset-list-item button.preset-favorite-button,
 [dir='rtl'] .preset-list-item button.tag-reference-button {
+    float: left;
     left: 0;
     right: auto;
-    border-radius: 3px 0 0 3px;
+    /*border-radius: 3px 0 0 3px;*/
 }
 
+.preset-list-item button:first-child {
+    border-radius: 4px 0 0 4px;
+}
+.preset-list-item button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.preset-list-item button.preset-favorite-button:hover,
 .preset-list-item button.tag-reference-button:hover {
     background: #f1f1f1;
 }
+.preset-list-item button.preset-favorite-button .icon,
 .preset-list-item button.tag-reference-button .icon {
     opacity: .5;
+}
+
+.icon.favorite {
+    fill-opacity: 0;
+    stroke-width: 1.6;
+}
+.icon.favorite.active {
+    fill-opacity: inherit;
 }
 
 img.tag-reference-wiki-image {
@@ -1173,6 +1197,10 @@ img.tag-reference-wiki-image {
     display: none;
 }
 .entity-editor-pane .preset-list-item .preset-list-button-wrap {
+    margin-bottom: 0;
+    display: flex;
+}
+.entity-editor-pane .preset-list-item .preset-list-button-wrap button {
     margin-bottom: 0;
 }
 

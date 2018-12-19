@@ -408,6 +408,7 @@
             "cancel": "Cancel",
             "changes": "{count} Changes",
             "download_changes": "Download osmChange file",
+            "errors": "Errors",
             "warnings": "Warnings",
             "modified": "Modified",
             "deleted": "Deleted",
@@ -1755,6 +1756,9 @@
                 "castle_type": {
                     "label": "Type"
                 },
+                "check_date": {
+                    "label": "Last Checked Date"
+                },
                 "clothes": {
                     "label": "Clothes"
                 },
@@ -1794,6 +1798,10 @@
                 },
                 "country": {
                     "label": "Country"
+                },
+                "couplings": {
+                    "label": "Couplings",
+                    "placeholder": "1, 2, 3..."
                 },
                 "covered": {
                     "label": "Covered"
@@ -1894,6 +1902,9 @@
                 "diaper": {
                     "label": "Diaper Changing Available"
                 },
+                "diet_multi": {
+                    "label": "Diet Types"
+                },
                 "direction_cardinal": {
                     "label": "Direction",
                     "options": {
@@ -1977,6 +1988,9 @@
                 "emergency": {
                     "label": "Emergency"
                 },
+                "enforcement": {
+                    "label": "Type"
+                },
                 "entrance": {
                     "label": "Type"
                 },
@@ -1996,22 +2010,19 @@
                 "fence_type": {
                     "label": "Type"
                 },
-                "fire_hydrant/position": {
-                    "label": "Position",
-                    "options": {
-                        "lane": "Lane",
-                        "parking_lot": "Parking Lot",
-                        "sidewalk": "Sidewalk",
-                        "green": "Green"
-                    }
+                "fire_hydrant/diameter": {
+                    "label": "Diameter (mm, in, or letters)"
+                },
+                "fire_hydrant/pressure": {
+                    "label": "Pressure (bar)"
                 },
                 "fire_hydrant/type": {
-                    "label": "Type",
+                    "label": "Shape",
                     "options": {
                         "pillar": "Pillar/Aboveground",
                         "underground": "Underground",
                         "wall": "Wall",
-                        "pond": "Pond"
+                        "pipe": "Capped Pipe"
                     }
                 },
                 "fireplace": {
@@ -2427,6 +2438,9 @@
                         "reversible": "Reversible",
                         "alternating": "Alternating"
                     }
+                },
+                "opening_date": {
+                    "label": "Expected Opening Date"
                 },
                 "opening_hours": {
                     "label": "Hours"
@@ -2968,6 +2982,9 @@
                 "surveillance/zone": {
                     "label": "Surveillance Zone"
                 },
+                "survey/date": {
+                    "label": "Last Survey Date"
+                },
                 "swimming_pool": {
                     "label": "Type"
                 },
@@ -3149,6 +3166,12 @@
                 },
                 "water_point": {
                     "label": "Water Point"
+                },
+                "water_source": {
+                    "label": "Water Source"
+                },
+                "water_volume": {
+                    "label": "Water Reserve Volume (m³)"
                 },
                 "water": {
                     "label": "Type"
@@ -4642,7 +4665,7 @@
                 },
                 "emergency/fire_hydrant": {
                     "name": "Fire Hydrant",
-                    "terms": "fire plug"
+                    "terms": "fire plug,fire water well,hydrant"
                 },
                 "emergency/first_aid_kit": {
                     "name": "First Aid Kit",
@@ -4791,6 +4814,10 @@
                 "highway/bus_guideway": {
                     "name": "Bus Guideway",
                     "terms": ""
+                },
+                "highway/construction": {
+                    "name": "Road Closed",
+                    "terms": "closed,closure,construction"
                 },
                 "highway/corridor": {
                     "name": "Indoor Corridor",
@@ -5422,7 +5449,11 @@
                 },
                 "leisure/pitch/american_football": {
                     "name": "American Football Field",
-                    "terms": ""
+                    "terms": "football,gridiron"
+                },
+                "leisure/pitch/australian_football": {
+                    "name": "Australian Football Field",
+                    "terms": "Aussie,AFL,football"
                 },
                 "leisure/pitch/badminton": {
                     "name": "Badminton Court",
@@ -5455,6 +5486,10 @@
                 "leisure/pitch/equestrian": {
                     "name": "Riding Arena",
                     "terms": "dressage,equestrian,horse,horseback,riding"
+                },
+                "leisure/pitch/netball": {
+                    "name": "Netball Court",
+                    "terms": ""
                 },
                 "leisure/pitch/rugby_league": {
                     "name": "Rugby League Field",
@@ -7218,6 +7253,10 @@
                 },
                 "type/boundary/administrative": {
                     "name": "Administrative Boundary",
+                    "terms": ""
+                },
+                "type/enforcement": {
+                    "name": "Enforcement",
                     "terms": ""
                 },
                 "type/restriction": {

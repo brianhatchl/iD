@@ -26,13 +26,18 @@ export function uiPresetFavorite() {
             .attr('class', 'preset-favorite-button')
             .attr('title', t('icons.favorite'))
             .attr('tabindex', -1)
-            .call(svgIcon('#iD-icon-favorite', 'favorite'))
+            .call(svgIcon('#iD-icon-favorite'))
             .merge(_button);
 
         _button
             .on('click', function () {
                 d3_event.stopPropagation();
                 d3_event.preventDefault();
+
+                d3_select(this)
+                    .classed('active', function() {
+                        return !d3_select(this).classed('active');
+                    });
 
             });
     };

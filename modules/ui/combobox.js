@@ -49,38 +49,19 @@ export function uiCombobox(context, klass) {
             .on('keydown.typeahead', keydown)
             .on('keyup.typeahead', keyup)
             .on('input.typeahead', change)
+            .on('mousedown', mousedown)
             .each(addCaret);
-
 
         function addCaret() {
             var parent = this.parentNode;
             var sibling = this.nextSibling;
 
-            var caret = d3_select(parent).selectAll('.combobox-caret')
+            d3_select(parent).selectAll('.combobox-caret')
                 .filter(function(d) { return d === input.node(); })
-                .data([input.node()]);
-
-            caret = caret.enter()
+                .data([input.node()])
+                .enter()
                 .insert('div', function() { return sibling; })
-                .attr('class', 'combobox-caret')
-                .merge(caret);
-
-            caret
-                .on('mousedown', function () {
-                    // prevent the form element from blurring. it blurs on mousedown
-                    d3_event.stopPropagation();
-                    d3_event.preventDefault();
-                    var combo = container.selectAll('.combobox');
-                    if (combo.empty()) {
-                        input.node().focus();
-                        fetch('', function() {
-                            show();
-                            render();
-                        });
-                    } else {
-                        hide();
-                    }
-                });
+                .attr('class', 'combobox-caret');
         }
 
 
@@ -204,6 +185,22 @@ export function uiCombobox(context, klass) {
             });
         }
 
+
+        function mousedown() {
+            // prevent the form element from blurring. it blurs on mousedown
+            d3_event.stopPropagation();
+            d3_event.preventDefault();
+            var combo = container.selectAll('.combobox');
+            if (combo.empty()) {
+                input.node().focus();
+                fetch('', function() {
+                    show();
+                    render();
+                });
+            } else {
+                hide();
+            }
+        }
 
         function nav(dir) {
             if (!_suggestions.length) return;
@@ -341,7 +338,7 @@ export function uiCombobox(context, klass) {
         // Dispatches an 'accept' event if an option has been chosen.
         // Then hides the combobox.
         function accept(d) {
-            d = d || _choice;
+            d = d || _choice || value();
             if (d) {
                 utilGetSetValue(input, d.value);
                 utilTriggerEvent(input, 'change');

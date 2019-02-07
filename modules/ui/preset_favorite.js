@@ -18,7 +18,7 @@ export function uiPresetFavorite(preset, geom) {
 
     var modesContainer = d3_select('div.modes');
     var markerClass = preset.name()
-        .replace(/\w+/g, '_')
+        .replace(/\s+/g, '_')
         + '-' + geom; //replace spaces with underscores to avoid css interpretation
     var favorite = modesContainer.selectAll('button.favorite.' + markerClass);
 

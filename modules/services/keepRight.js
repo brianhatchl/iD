@@ -9,7 +9,7 @@ import { json as d3_json } from 'd3-request';
 import { request as d3_request } from 'd3-request';
 
 import { geoExtent, geoVecAdd } from '../geo';
-import { krError } from '../osm';
+import { qaError } from '../osm';
 import { t } from '../util/locale';
 import { utilRebind, utilTiler, utilQsString } from '../util';
 
@@ -41,13 +41,13 @@ function abortRequest(i) {
 }
 
 function abortUnwantedRequests(cache, tiles) {
-    _forEach(cache.inflight, function(v, k) {
+    _forEach(cache.inflightTile, function(v, k) {
         var wanted = _find(tiles, function(tile) {
             return k === tile.id;
         });
         if (!wanted) {
             abortRequest(v);
-            delete cache.inflight[k];
+            delete cache.inflightTile[k];
         }
     });
 }
@@ -71,7 +71,7 @@ function updateRtree(item, replace) {
 
 
 function tokenReplacements(d) {
-    if (!(d instanceof krError)) return;
+    if (!(d instanceof qaError)) return;
 
     var htmlRegex = new RegExp(/<\/[a-z][\s\S]*>/);
     var replacements = {};
@@ -109,8 +109,11 @@ function tokenReplacements(d) {
             capture = parseError(capture, idType);
         } else if (htmlRegex.test(capture)) {   // escape any html in non-IDs
             capture = '\\' +  capture + '\\';
-        } else if (localizeStrings[capture]) {  // some replacement strings can be localized
-            capture = t('QA.keepRight.error_parts.' + localizeStrings[capture]);
+        } else {
+            var compare = capture.toLowerCase();
+            if (localizeStrings[compare]) {   // some replacement strings can be localized
+                capture = t('QA.keepRight.error_parts.' + localizeStrings[compare]);
+            }
         }
 
         replacements['var' + i] = capture;
@@ -121,9 +124,22 @@ function tokenReplacements(d) {
 
 
 function parseError(capture, idType) {
+    var compare = capture.toLowerCase();
+    if (localizeStrings[compare]) {   // some replacement strings can be localized
+        capture = t('QA.keepRight.error_parts.' + localizeStrings[compare]);
+    }
 
     switch (idType) {
-        // simple case just needs a linking span
+        // link a string like "this node"
+        case 'this':
+            capture = linkErrorObject(capture);
+            break;
+
+        case 'url':
+            capture = linkURL(capture);
+            break;
+
+        // link an entity ID
         case 'n':
         case 'w':
         case 'r':
@@ -151,8 +167,16 @@ function parseError(capture, idType) {
     return capture;
 
 
+    function linkErrorObject(d) {
+        return '<a class="error_object_link">' + d + '</a>';
+    }
+
     function linkEntity(d) {
-        return '<a class="kr_error_entity_link">' + d + '</a>';
+        return '<a class="error_entity_link">' + d + '</a>';
+    }
+
+    function linkURL(d) {
+        return '<a class="kr_external_link" target="_blank" href="' + d + '">' + d + '</a>';
     }
 
     // arbitrary node list of form: #ID, #ID, #ID...
@@ -255,9 +279,16 @@ export default {
 
     reset: function() {
         if (_krCache) {
-            _forEach(_krCache.inflight, abortRequest);
+            _forEach(_krCache.inflightTile, abortRequest);
         }
-        _krCache = { loaded: {}, inflight: {}, keepRight: {}, rtree: rbush() };
+        _krCache = {
+            data: {},
+            loadedTile: {},
+            inflightTile: {},
+            inflightPost: {},
+            closed: {},
+            rtree: rbush()
+        };
     },
 
 
@@ -276,18 +307,18 @@ export default {
 
         // issue new requests..
         tiles.forEach(function(tile) {
-            if (_krCache.loaded[tile.id] || _krCache.inflight[tile.id]) return;
+            if (_krCache.loadedTile[tile.id] || _krCache.inflightTile[tile.id]) return;
 
             var rect = tile.extent.rectangle();
             var params = _extend({}, options, { left: rect[0], bottom: rect[3], right: rect[2], top: rect[1] });
             var url = _krUrlRoot + 'export.php?' + utilQsString(params) + '&ch=' + rules;
 
-            _krCache.inflight[tile.id] = d3_json(url,
+            _krCache.inflightTile[tile.id] = d3_json(url,
                 function(err, data) {
-                    delete _krCache.inflight[tile.id];
+                    delete _krCache.inflightTile[tile.id];
 
                     if (err) return;
-                    _krCache.loaded[tile.id] = true;
+                    _krCache.loadedTile[tile.id] = true;
 
                     if (!data.features || !data.features.length) return;
 
@@ -304,6 +335,34 @@ export default {
 
                         // try to handle error type directly, fallback to parent error type.
                         var whichType = errorTemplate ? errorType : parentErrorType;
+                        var whichTemplate = errorTypes[whichType];
+
+                        // Rewrite a few of the errors at this point..
+                        // This is done to make them easier to linkify and translate.
+                        switch (whichType) {
+                            case '170':
+                                props.description = 'This feature has a FIXME tag: ' + props.description;
+                                break;
+                            case '292':
+                            case '293':
+                                props.description = props.description.replace('A turn-', 'This turn-');
+                                break;
+                            case '294':
+                            case '295':
+                            case '296':
+                            case '297':
+                            case '298':
+                                props.description = 'This turn-restriction~' + props.description;
+                                break;
+                            case '300':
+                                props.description = 'This highway is missing a maxspeed tag';
+                                break;
+                            case '411':
+                            case '412':
+                            case '413':
+                                props.description = 'This feature~' + props.description;
+                                break;
+                        }
 
                         // - move markers slightly so it doesn't obscure the geometry,
                         // - then move markers away from other coincident markers
@@ -316,15 +375,19 @@ export default {
                             coincident = _krCache.rtree.search(bbox).length;
                         } while (coincident);
 
-                        var d = new krError({
+                        var d = new qaError({
+                            // Required values
                             loc: loc,
+                            service: 'keepRight',
+                            error_type: errorType,
+                            // Extra values for this service
                             id: props.error_id,
                             comment: props.comment || null,
                             description: props.description || '',
                             error_id: props.error_id,
                             which_type: whichType,
-                            error_type: errorType,
                             parent_error_type: parentErrorType,
+                            severity: whichTemplate.severity || 'error',
                             object_id: props.object_id,
                             object_type: props.object_type,
                             schema: props.schema,
@@ -333,7 +396,7 @@ export default {
 
                         d.replacements = tokenReplacements(d);
 
-                        _krCache.keepRight[d.id] = d;
+                        _krCache.data[d.id] = d;
                         _krCache.rtree.insert(encodeErrorRtree(d));
                     });
 
@@ -345,7 +408,7 @@ export default {
 
 
     postKeepRightUpdate: function(d, callback) {
-        if (_krCache.inflight[d.id]) {
+        if (_krCache.inflightPost[d.id]) {
             return callback({ message: 'Error update already inflight', status: -2 }, d);
         }
 
@@ -362,11 +425,17 @@ export default {
         // NOTE: This throws a CORS err, but it seems successful.
         // We don't care too much about the response, so this is fine.
         var url = _krUrlRoot + 'comment.php?' + utilQsString(params);
-        _krCache.inflight[d.id] = d3_request(url)
+        _krCache.inflightPost[d.id] = d3_request(url)
             .post(function(err) {
-                delete _krCache.inflight[d.id];
-                if (d.state === 'ignore' || d.state === 'ignore_t') {
+                delete _krCache.inflightPost[d.id];
+
+                if (d.state === 'ignore') {   // ignore permanently (false positive)
                     that.removeError(d);
+
+                } else if (d.state === 'ignore_t') {  // ignore temporarily (error fixed)
+                    that.removeError(d);
+                    _krCache.closed[d.schema + ':' + d.error_id] = true;
+
                 } else {
                     d = that.replaceError(d.update({
                         comment: d.newComment,
@@ -396,15 +465,15 @@ export default {
 
     // get a single error from the cache
     getError: function(id) {
-        return _krCache.keepRight[id];
+        return _krCache.data[id];
     },
 
 
     // replace a single error in the cache
     replaceError: function(error) {
-        if (!(error instanceof krError) || !error.id) return;
+        if (!(error instanceof qaError) || !error.id) return;
 
-        _krCache.keepRight[error.id] = error;
+        _krCache.data[error.id] = error;
         updateRtree(encodeErrorRtree(error), true); // true = replace
         return error;
     },
@@ -412,15 +481,22 @@ export default {
 
     // remove a single error from the cache
     removeError: function(error) {
-        if (!(error instanceof krError) || !error.id) return;
+        if (!(error instanceof qaError) || !error.id) return;
 
-        delete _krCache.keepRight[error.id];
+        delete _krCache.data[error.id];
         updateRtree(encodeErrorRtree(error), false); // false = remove
     },
 
 
     errorURL: function(error) {
         return _krUrlRoot + 'report_map.php?schema=' + error.schema + '&error=' + error.id;
+    },
+
+
+    // Get an array of errors closed during this session.
+    // Used to populate `closed:keepright` changeset tag
+    getClosedIDs: function() {
+        return Object.keys(_krCache.closed).sort();
     }
 
 };

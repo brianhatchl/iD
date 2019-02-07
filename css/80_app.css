@@ -409,6 +409,10 @@ button[disabled].action:hover {
     border-radius: 3px;
 }
 
+.icon-annotation {
+    color: #333;
+}
+
 
 /* Toolbar / Persistent UI Elements
 ------------------------------------------------------- */
@@ -452,6 +456,7 @@ button[disabled].action:hover {
     align-items: center;
     padding: 0 10px;
     min-width: 30px;
+    white-space: nowrap;
 }
 .tool-group button .icon {
     flex: 0 0 20px;
@@ -586,7 +591,7 @@ button.add-note svg.icon {
 .field-help-title button.close,
 .sidebar-component .header button.data-editor-close,
 .sidebar-component .header button.note-editor-close,
-.sidebar-component .header button.keepRight-editor-close,
+.sidebar-component .header button.error-editor-close,
 .entity-editor-pane .header button.preset-close,
 .preset-list-pane .header button.preset-choose {
     position: absolute;
@@ -596,7 +601,7 @@ button.add-note svg.icon {
 [dir='rtl'] .field-help-title button.close,
 [dir='rtl'] .sidebar-component .header button.data-editor-close,
 [dir='rtl'] .sidebar-component .header button.note-editor-close,
-[dir='rtl'] .sidebar-component .header button.keepRight-editor-close,
+[dir='rtl'] .sidebar-component .header button.error-editor-close,
 [dir='rtl'] .entity-editor-pane .header button.preset-close,
 [dir='rtl'] .preset-list-pane .header button.preset-choose {
     left: 0;
@@ -794,7 +799,7 @@ a.hide-toggle {
 }
 
 .inspector-inner {
-    padding: 20px;
+    padding: 20px 20px 5px 20px;
     position: relative;
 }
 
@@ -845,6 +850,10 @@ a.hide-toggle {
     left: 25%;
     margin-top: 30px;
     border-radius: 2px;
+}
+
+[dir='rtl'] .geocode-item {
+    left: -25%;
 }
 
 .geocode-item:hover {
@@ -1177,11 +1186,30 @@ img.tag-reference-wiki-image {
 }
 
 
+/* Quick links
+------------------------------------------------------- */
+.quick-links {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-end;
+    padding: 0 20px;
+}
+.quick-link {
+    margin: 0 5px;
+}
+
+.data-editor .quick-links,
+.error-editor .quick-links,
+.note-editor .quick-links {
+    padding: 5px 0 0 0;
+}
+
+
 /* Entity/Preset Editor
 ------------------------------------------------------- */
 .preset-editor {
     overflow: hidden;
-    padding: 20px 0 10px 0;
+    padding: 10px 0px 5px 0px;
 }
 .preset-editor a.hide-toggle {
     margin: 0 20px 5px 20px;
@@ -1425,50 +1453,71 @@ img.tag-reference-wiki-image {
 .form-field-input-combo > input:only-of-type {
     border-radius: 0 0 4px 4px;
 }
+.form-field-input-combo.empty-combobox input,
+.form-field-input-multicombo .empty-combobox input {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+.form-field-input-combo.empty-combobox .combobox-caret,
+.form-field-input-multicombo .empty-combobox .combobox-caret {
+    display: none;
+}
 
 .form-field-input-multicombo ul.chiplist {
-    padding: 5px 0 5px 10px;
+    padding: 5px 7px 5px 7px;
     background: #fff;
     display: block;
     border-radius: 0 0 4px 4px;
 }
 
 .form-field-input-multicombo li.chips {
+    background-color: #eff2f7;
+    border: 1px solid #ccd5e3;
+    line-height: 25px;
+    padding: 2px 0px 2px 5px;
+}
+.form-field-input-multicombo li {
     display: inline-flex;
     flex-flow: row nowrap;
     align-items: center;
-    background-color: #eff2f7;
-    border: 1px solid #ccd5e3;
-    border-radius: 4px;
-    line-height: 25px;
-    padding: 2px 5px;
     margin: 3px;
+    border-radius: 4px;
 }
 
 .form-field-input-multicombo a {
     font-family: Arial, Helvetica, sans-serif !important;
     font-size: 16px !important;
-    line-height: 24px;
+    line-height: 22px;
     float: right;
-    margin: 1px 0 0 5px;
-    padding: 0;
+    padding: 0px 5px 0px 5px;
+    margin: 0;
     cursor: pointer;
     color: #a6b4ce;
 }
 
-.form-field-input-multicombo input {
+.form-field-input-multicombo .input-wrap {
     border: 1px solid #ddd;
     width: 100px;
-    margin: 3px;
     height: 31px;
 }
-
-.form-field-input-multicombo .combobox-caret {
-    margin: 3px 3px 3px -30px;
+.form-field-input-multicombo input {
+    border: none;
+    width: 100%;
+    height: 100%;
 }
 
 .form-field-input-multicombo input:focus {
     border-radius: 4px !important;
+}
+
+.form-field-input-multicombo .full-line-chips li {
+    display: block;
+}
+.form-field-input-multicombo .full-line-chips li:not(:last-child) {
+    margin-bottom: 6px;
+}
+.form-field-input-multicombo .full-line-chips .input-wrap {
+    width: auto;
 }
 
 
@@ -1932,7 +1981,6 @@ div.combobox {
     margin-left: -30px;
     vertical-align: top;
     cursor: pointer;
-    pointer-events: none;
 }
 [dir='rtl'] .combobox-caret {
   margin-left: 0;
@@ -2111,7 +2159,7 @@ div.combobox {
 }
 .tag-row .key-wrap,
 .tag-row .value-wrap {
-    flex: 1 1 auto;
+    flex: 1 1 50%;
 }
 
 .tag-row.readonly,
@@ -2208,22 +2256,6 @@ div.combobox {
     border-right-width: 0;
 }
 
-/* Adding form fields to tag editor */
-.raw-tag-editor .add-tag {
-    width: 40%;
-    height: 30px;
-    border-top: 0;
-    background: rgba(0,0,0,.5);
-    border-radius: 0 0 4px 4px;
-}
-.raw-tag-editor .add-tag:focus,
-.raw-tag-editor .add-tag:hover {
-    background: rgba(0,0,0,.8);
-}
-.raw-tag-editor .add-tag .label {
-    display: none;
-}
-
 /* Tag reference */
 .tag-reference-loading {
     background-color: #f5f5f5;
@@ -2238,15 +2270,14 @@ div.combobox {
     width: 100%;
     overflow: hidden;
 }
-.tag-reference-body .tag-reference-description {
-    margin: 10px 5px 0 5px;
+.tag-reference-body.expanded {
+    padding-bottom: 10px;
 }
-.tag-reference-body a {
+.tag-reference-description {
+    margin: 10px 5px;
+}
+.tag-reference-link {
     display: block;
-}
-.tag-reference-body .tag-reference-description:last-child,
-.tag-reference-body a:last-child {
-    margin-bottom: 15px;
 }
 
 .preset-list .tag-reference-body {
@@ -2280,6 +2311,12 @@ div.combobox {
     padding-left: 10px;
 }
 
+[dir='rtl'] .raw-member-editor .member-row .member-entity-name,
+[dir='rtl'] .raw-membership-editor .member-row .member-entity-name {
+    padding-left:0;
+    padding-right: 10px;
+}
+
 .form-field-input-member > input.member-role {
     border-radius: 0 0 0 4px;
 }
@@ -2302,18 +2339,6 @@ div.combobox {
     border: 0;
 }
 
-.add-relation {
-    width: 40%;
-    height: 30px;
-    background: rgba(0,0,0,.5);
-    border-radius: 4px;
-    margin-top: 10px;
-}
-.add-relation:focus,
-.add-relation:hover {
-    background: rgba(0,0,0,.8);
-}
-
 /* preserve extra space at bottom of inspector to allow for dropdown options - #5280 */
 .raw-membership-editor.inspector-inner {
     margin-bottom: 150px;
@@ -2325,6 +2350,38 @@ input.key-trap {
     width: 0px;
     padding: 0px;
     border: 1px solid rgba(0,0,0,0);
+}
+
+
+/* add tag, add relation buttons */
+.add-row {
+    display: flex;
+    width: 100%;
+    flex-flow: row nowrap;
+}
+.add-row .add-tag,
+.add-row .add-relation,
+.add-row .space-value {
+    flex: 1 1 50%;
+}
+.add-row .space-buttons {
+    flex: 0 0 62px;
+}
+.add-row button {
+    height: 30px;
+    background: rgba(0,0,0,.5);
+}
+.add-row button:focus,
+.add-row button:hover {
+    background: rgba(0,0,0,.8);
+}
+
+.add-tag {
+    border-radius: 0 0 4px 4px;
+}
+.add-relation {
+    margin-top: 10px;
+    border-radius: 4px;
 }
 
 
@@ -2369,18 +2426,18 @@ input.key-trap {
 .inspector-hover .preset-list-button-wrap .tag-reference-button,
 .inspector-hover label input[type="checkbox"],
 .inspector-hover label input[type="radio"],
-.inspector-hover .form-field-input-multicombo .combobox-input,
+.inspector-hover .form-field-input-multicombo .input-wrap,
 .inspector-hover .form-field-input-radio label,
 .inspector-hover .form-field-input-radio label span,
 .inspector-hover .form-field-input-radio label.remove .icon,
-.inspector-hover .inspector-inner .add-tag,
-.inspector-hover .inspector-inner .add-relation {
+.inspector-hover .inspector-inner .add-row {
     display: none;
 }
 
 /* hide but preserve in layout */
 .inspector-hover .combobox-caret,
 .inspector-hover .header button,
+.inspector-hover .quick-links,
 .inspector-hover .form-field-input-multicombo .chips .remove,
 .inspector-hover .hide-toggle:before,
 .inspector-hover .more-fields,
@@ -2460,7 +2517,7 @@ input.key-trap {
 /* OSM Note / KeepRight Editors
 ------------------------------------------------------- */
 .note-header,
-.kr_error-header {
+.error-header {
     background-color: #f6f6f6;
     border-radius: 5px;
     border: 1px solid #ccc;
@@ -2470,7 +2527,7 @@ input.key-trap {
 }
 
 .note-header-icon,
-.kr_error-header-icon {
+.error-header-icon {
     background-color: #fff;
     padding: 10px;
     flex: 0 0 62px;
@@ -2481,20 +2538,20 @@ input.key-trap {
     border-radius: 5px 0 0 5px;
 }
 [dir='rtl'] .note-header-icon,
-[dir='rtl'] .kr_error-header-icon {
+[dir='rtl'] .error-header-icon {
     border-right: unset;
     border-left: 1px solid #ccc;
     border-radius: 0 5px 5px 0;
 }
 
 .note-header-icon .icon-wrap,
-.kr_error-header-icon .icon-wrap {
+.error-header-icon .icon-wrap {
     position: absolute;
     top: 0px;
 }
 
 .note-header-label,
-.kr_error-header-label {
+.error-header-label {
     background-color: #f6f6f6;
     padding: 0 15px;
     flex: 1 1 100%;
@@ -2503,7 +2560,7 @@ input.key-trap {
     border-radius: 0 5px 5px 0;
 }
 [dir='rtl'] .note-header-label,
-[dir='rtl'] .kr_error-header-label {
+[dir='rtl'] .error-header-label {
     border-radius: 5px 0 0 5px;
 }
 
@@ -2570,39 +2627,42 @@ input.key-trap {
 }
 
 .note-save,
-.keepRight-save,
-.kr_error-details,
-.kr_error-comment-container {
+.error-save {
+    padding-top: 20px;
+}
+
+.error-details {
     padding: 10px;
 }
-
-.keepRight-save .new-comment-input,
-.note-save .new-comment-input {
-    width: 100%;
-    height: 100px;
-    max-height: 300px;
-    min-height: 100px;
-}
-
-.keepRight-save .detail-section,
-.note-save .detail-section {
-    margin: 10px 0;
-}
-
-.note-report {
-    float: right;
-}
-
-.kr_error-details-container {
+.error-details-container {
     background: #ececec;
     padding: 10px;
     margin-top: 20px;
     border-radius: 4px;
     border: 1px solid #ccc;
 }
-
-.kr_error-details-description {
+.error-details-description {
     margin-bottom: 10px;
+}
+.error-details-description-text::first-letter {
+    text-transform: capitalize;
+}
+
+.note-save .new-comment-input,
+.error-save .new-comment-input {
+    width: 100%;
+    height: 100px;
+    max-height: 300px;
+    min-height: 100px;
+}
+
+.note-save .detail-section,
+.error-save .detail-section {
+    margin: 10px 0;
+}
+
+.note-report {
+    float: right;
 }
 
 
@@ -3789,7 +3849,7 @@ img.tile-debug {
     vertical-align: baseline;
     width: 11px;
     height: 11px;
-    fill: #fff;
+    color: #fff;
 }
 
 /* For text (e.g. upcoming events) */
@@ -4093,13 +4153,11 @@ img.tile-debug {
 }
 
 .modal-shortcuts .shortcut-keys {
-    padding-right: 10px;
+    padding: 0 10px;
     color: #767676;
     text-align: right;
 }
 [dir='rtl'] .modal-shortcuts .shortcut-keys {
-    padding-right: auto;
-    padding-left: 10px;
     text-align: left;
 }
 
@@ -4350,29 +4408,24 @@ svg.mouseclick use.right {
     font-size: 12px;
     white-space: initial;
 }
-
 .tooltip.in {
     opacity: 0.9;
     z-index: 1030;
     height: auto;
     display: block;
 }
-
 .tooltip.top {
     margin-top: -20px;
     text-align: center;
 }
-
 .tooltip.right {
     margin-left: 20px;
     text-align: left;
 }
-
 .tooltip.bottom {
     margin-top: 20px;
     text-align: center;
 }
-
 .tooltip.left {
     margin-left: -20px;
     text-align: right;
@@ -4397,7 +4450,6 @@ svg.mouseclick use.right {
     position: absolute;
     background: transparent;
 }
-
 .tail::after {
     content: "";
     position: absolute;
@@ -4444,7 +4496,6 @@ svg.mouseclick use.right {
     border-color: transparent;
     border-style: solid;
 }
-
 .tooltip.top .tooltip-arrow {
     bottom: -5px;
     left: 50%;
@@ -4452,7 +4503,6 @@ svg.mouseclick use.right {
     border-top-color: #fff;
     border-width: 5px 5px 0;
 }
-
 .tooltip.right .tooltip-arrow {
     top: 50%;
     left: -5px;
@@ -4460,7 +4510,6 @@ svg.mouseclick use.right {
     border-right-color: #fff;
     border-width: 5px 5px 5px 0;
 }
-
 .tooltip.left .tooltip-arrow {
     top: 50%;
     right: -5px;
@@ -4468,7 +4517,6 @@ svg.mouseclick use.right {
     border-left-color: #fff;
     border-width: 5px 0 5px 5px;
 }
-
 .tooltip.bottom .tooltip-arrow {
     top: -5px;
     left: 50%;
@@ -4479,7 +4527,7 @@ svg.mouseclick use.right {
 
 .tooltip-heading {
     font-weight: bold;
-    background: #F6F6F6;
+    background: #f6f6f6;
     padding: 10px;
     margin: -10px -10px 10px -10px;
     border-radius: 3px 3px 0 0;
@@ -4487,52 +4535,50 @@ svg.mouseclick use.right {
 }
 
 .keyhint-wrap {
-    background: #F6F6F6;
+    background: #f6f6f6;
     padding: 10px;
     margin: 10px -10px -10px -10px;
     border-radius: 0 0 3px 3px;
 }
-
 .tooltip-inner .keyhint {
     font-weight: bold;
     margin-left: 5px;
 }
 
-/* Exceptions for tooltip layouts */
+[dir='rtl'] .tooltip-inner .keyhint {
+    margin-left: 0;
+    margin-right: 5px;
+}
 
-/* make tooltips in panels dark */
+/* dark tooltips for sidebar / panels */
 .map-pane .tooltip.top .tooltip-arrow,
-.entity-editor-pane .tooltip.top .tooltip-arrow,
-.warning-section .tooltip.top .tooltip-arrow {
+#sidebar .tooltip.top .tooltip-arrow {
     border-top-color: #000;
 }
-
 .map-pane .tooltip.bottom .tooltip-arrow,
-.entity-editor-pane .tooltip.bottom .tooltip-arrow,
-.warning-section .tooltip.bottom .tooltip-arrow {
+#sidebar .tooltip.bottom .tooltip-arrow {
     border-bottom-color: #000;
 }
-
 .map-pane .tooltip.left .tooltip-arrow,
-.entity-editor-pane .tooltip.left .tooltip-arrow,
-.warning-section .tooltip.left .tooltip-arrow {
+#sidebar .tooltip.left .tooltip-arrow {
     border-left-color: #000;
 }
-
 .map-pane .tooltip.right .tooltip-arrow,
-.entity-editor-pane .tooltip.right .tooltip-arrow,
-.warning-section .tooltip.right .tooltip-arrow {
+#sidebar .tooltip.right .tooltip-arrow {
     border-right-color: #000;
 }
-
 .map-pane .tooltip-inner,
 .map-pane .tooltip-heading,
 .map-pane .keyhint-wrap,
-.entity-editor-pane .tooltip-inner,
-.warning-section .tooltip-inner {
+#sidebar .tooltip-inner,
+#sidebar .tooltip-heading,
+#sidebar .keyhint-wrap {
     background: #000;
     color: #ccc;
 }
+
+/* Exceptions for tooltip layouts */
+
 /* commit warning tooltips need to be closer */
 .warning-section .tooltip.top {
     margin-top: -5px;
@@ -4548,11 +4594,11 @@ svg.mouseclick use.right {
 
 /* Move over tooltips that are near the edge of screen */
 button.sidebar-toggle .tooltip .tooltip-arrow {
-    left: 32px;
+    left: 36px;
 }
 [dir='rtl'] button.sidebar-toggle .tooltip .tooltip-arrow {
     left: auto;
-    right: 32px;
+    right: 36px;
 }
 
 li:first-of-type .badge .tooltip,

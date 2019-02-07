@@ -138,9 +138,6 @@ export function utilStringQs(str) {
         if (parts.length === 2) {
             obj[parts[0]] = (null === parts[1]) ? '' : decodeURIComponent(parts[1]);
         }
-        if (parts[0] === 'mvt') {
-            obj[parts[0]] = (parts[2] !== undefined) ? (decodeURIComponent(parts[1]) + '=' + decodeURIComponent(parts[2])) : (decodeURIComponent(parts[1]));
-        }
         return obj;
     }, {});
 }
@@ -305,19 +302,13 @@ export function utilNoAuto(selection) {
     var isText = (selection.size() && selection.node().tagName.toLowerCase() === 'textarea');
 
     return selection
-        .attr('autocomplete', 'off')
+        // assign 'new-password' even for non-password fields to prevent browsers (Chrome) ignoring 'off'
+        .attr('autocomplete', 'new-password')
         .attr('autocorrect', 'off')
         .attr('autocapitalize', 'off')
         .attr('spellcheck', isText ? 'true' : 'false');
 }
 
-export function utilExternalPresets() {
-    return utilStringQs(window.location.hash).hasOwnProperty('presets');
-}
-
-export function utilExternalValidationRules() {
-    return utilStringQs(window.location.hash).hasOwnProperty('validations');
-}
 
 // https://stackoverflow.com/questions/194846/is-there-any-kind-of-hash-code-function-in-javascript
 // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/

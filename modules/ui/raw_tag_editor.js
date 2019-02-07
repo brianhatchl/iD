@@ -1,7 +1,3 @@
-import _map from 'lodash-es/map';
-import _includes from 'lodash-es/includes';
-
-import { ascending as d3_ascending } from 'd3-array';
 import { dispatch as d3_dispatch } from 'd3-dispatch';
 
 import {
@@ -20,10 +16,10 @@ export function uiRawTagEditor(context) {
     var taginfo = services.taginfo;
     var dispatch = d3_dispatch('change');
     var _readOnlyTags = [];
+    var _sortKeys = false;
     var _showBlank = false;
     var _updatePreference = true;
     var _expanded = false;
-    var _newRow;
     var _state;
     var _preset;
     var _tags;
@@ -57,16 +53,22 @@ export function uiRawTagEditor(context) {
 
 
     function content(wrap) {
-        var entries = _map(_tags, function(v, k) {
-            return { key: k, value: v };
-        });
+        var entries = [];
+        var keys = Object.keys(_tags);
+        if (_sortKeys) {
+            _sortKeys = false;
+            keys = keys.sort();
+        }
+        for (var i = 0; i < keys.length; i++) {
+            entries.push({ key: keys[i], value: _tags[keys[i]] });
+        }
 
         if (!entries.length || _showBlank) {
             _showBlank = false;
-            entries.push({key: '', value: ''});
-            _newRow = '';
+            entries.push({ key: '', value: '' });
         }
 
+        // List of tags
         var list = wrap.selectAll('.tag-list')
             .data([0]);
 
@@ -75,16 +77,30 @@ export function uiRawTagEditor(context) {
             .attr('class', 'tag-list')
             .merge(list);
 
-        var newTag = wrap.selectAll('.add-tag')
-            .data([0]);
 
-        newTag.enter()
+        // Container for the Add button
+        var addRowEnter = wrap.selectAll('.add-row')
+            .data([0])
+            .enter()
+            .append('div')
+            .attr('class', 'add-row');
+
+        addRowEnter
             .append('button')
             .attr('class', 'add-tag')
-            .on('click', addTag)
-            .call(svgIcon('#iD-icon-plus', 'light'));
+            .call(svgIcon('#iD-icon-plus', 'light'))
+            .on('click', addTag);
+
+        addRowEnter
+            .append('div')
+            .attr('class', 'space-value');   // preserve space
+
+        addRowEnter
+            .append('div')
+            .attr('class', 'space-buttons');  // preserve space
 
 
+        // Tag list items
         var items = list.selectAll('.tag-row')
             .data(entries, function(d) { return d.key; });
 
@@ -92,8 +108,8 @@ export function uiRawTagEditor(context) {
             .each(unbind)
             .remove();
 
-        // Enter
 
+        // Enter
         var enter = items.enter()
             .append('li')
             .attr('class', 'tag-row')
@@ -129,18 +145,14 @@ export function uiRawTagEditor(context) {
             .append('button')
             .attr('tabindex', -1)
             .attr('class', 'form-field-button remove')
+            .attr('title', t('icons.remove'))
             .call(svgIcon('#iD-operation-delete'));
 
 
         // Update
-
         items = items
             .merge(enter)
-            .sort(function(a, b) {
-                return (a.key === _newRow && b.key !== _newRow) ? 1
-                    : (a.key !== _newRow && b.key === _newRow) ? -1
-                    : d3_ascending(a.key, b.key);
-            });
+            .order();
 
         items
             .each(function(tag) {
@@ -216,7 +228,12 @@ export function uiRawTagEditor(context) {
                         geometry: geometry,
                         query: value
                     }, function(err, data) {
-                        if (!err) callback(sort(value, data));
+                        if (!err) {
+                            var filtered = data.filter(function(d) {
+                                return _tags[d.value] === undefined;
+                            });
+                            callback(sort(value, filtered));
+                        }
                     });
                 }));
 
@@ -262,62 +279,74 @@ export function uiRawTagEditor(context) {
         function keyChange(d) {
             var kOld = d.key;
             var kNew = this.value.trim();
-            var tag = {};
+            var row = this.parentNode.parentNode;
+            var inputVal = d3_select(row).selectAll('input.value');
+            var vNew = utilGetSetValue(inputVal);
 
+            // if the key looks like "key=value", split them up - #5024
+            if (kNew.indexOf('=') !== -1) {
+                var parts = kNew
+                    .split('=')
+                    .map(function(str) { return str.trim(); })
+                    .filter(Boolean);
+
+                if (parts.length === 2) {
+                    kNew = parts[0];
+                    vNew = parts[1];
+                }
+            }
+
+            // allow no change if the key should be readonly
             if (isReadOnly({ key: kNew })) {
                 this.value = kOld;
                 return;
             }
 
+            // switch focus if key is already in use
             if (kNew && kNew !== kOld) {
-                var match = kNew.match(/^(.*?)(?:_(\d+))?$/);
-                var base = match[1];
-                var suffix = +(match[2] || 1);
-                while (_tags[kNew]) {  // rename key if already in use
-                    kNew = base + '_' + suffix++;
-                }
-
-                if (_includes(kNew, '=')) {
-                    var splitStr = kNew.split('=').map(function(str) { return str.trim(); });
-                    var key = splitStr[0];
-                    var value = splitStr[1];
-
-                    kNew = key;
-                    d.value = value;
+                if (_tags[kNew] !== undefined) {      // new key is already in use
+                    this.value = kOld;                // reset the key
+                    list.selectAll('input.value')
+                        .each(function(d) {
+                            if (d.key === kNew) {     // send focus to that other value combo instead
+                                var input = d3_select(this).node();
+                                input.focus();
+                                input.select();
+                            }
+                        });
+                    return;
                 }
             }
-            tag[kOld] = undefined;
-            tag[kNew] = d.value;
 
-            d.key = kNew;  // Maintain DOM identity through the subsequent update.
-
-            if (_newRow === kOld) {   // see if this row is still a new row
-                _newRow = ((d.value === '' || kNew === '') ? kNew : undefined);
+            var t = {};
+            if (kOld) {
+                t[kOld] = undefined;
             }
+            t[kNew] = vNew;
+
+            d.key = kNew;    // update datum to avoid exit/enter on tag update
+            d.value = vNew;
 
             this.value = kNew;
-            dispatch.call('change', this, tag);
+            utilGetSetValue(inputVal, vNew);
+
+            dispatch.call('change', this, t);
         }
 
 
         function valueChange(d) {
             if (isReadOnly(d)) return;
-            var tag = {};
-            tag[d.key] = this.value;
-
-            if (_newRow === d.key && d.key !== '' && d.value !== '') {   // not a new row anymore
-                _newRow = undefined;
-            }
-
-            dispatch.call('change', this, tag);
+            var t = {};
+            t[d.key] = this.value;
+            dispatch.call('change', this, t);
         }
 
 
         function removeTag(d) {
             if (isReadOnly(d)) return;
-            var tag = {};
-            tag[d.key] = undefined;
-            dispatch.call('change', this, tag);
+            var t = {};
+            t[d.key] = undefined;
+            dispatch.call('change', this, t);
             d3_select(this.parentNode).remove();
         }
 
@@ -365,6 +394,9 @@ export function uiRawTagEditor(context) {
 
     rawTagEditor.entityID = function(val) {
         if (!arguments.length) return _entityID;
+        if (_entityID !== val) {
+            _sortKeys = true;
+        }
         _entityID = val;
         return rawTagEditor;
     };

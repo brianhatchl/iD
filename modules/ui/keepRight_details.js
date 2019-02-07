@@ -6,7 +6,7 @@ import {
 import { dataEn } from '../../data';
 import { modeSelect } from '../modes';
 import { t } from '../util/locale';
-import { utilDisplayName, utilEntityOrMemberSelector } from '../util';
+import { utilDisplayName, utilEntityOrMemberSelector, utilEntityRoot } from '../util';
 
 
 export function uiKeepRightDetails(context) {
@@ -31,12 +31,13 @@ export function uiKeepRightDetails(context) {
         } else {
             detail = unknown;
         }
-        return detail.substr(0, 1).toUpperCase() + detail.substr(1);
+
+        return detail;
     }
 
 
     function keepRightDetails(selection) {
-        var details = selection.selectAll('.kr_error-details')
+        var details = selection.selectAll('.error-details')
             .data(
                 (_error ? [_error] : []),
                 function(d) { return d.id + '-' + (d.status || 0); }
@@ -47,13 +48,13 @@ export function uiKeepRightDetails(context) {
 
         var detailsEnter = details.enter()
             .append('div')
-            .attr('class', 'kr_error-details kr_error-details-container');
+            .attr('class', 'error-details error-details-container');
 
 
         // description
         var descriptionEnter = detailsEnter
             .append('div')
-            .attr('class', 'kr_error-details-description');
+            .attr('class', 'error-details-description');
 
         descriptionEnter
             .append('h4')
@@ -61,14 +62,17 @@ export function uiKeepRightDetails(context) {
 
         descriptionEnter
             .append('div')
-            .attr('class', 'kr_error-details-description-text')
+            .attr('class', 'error-details-description-text')
             .html(errorDetail);
 
         // If there are entity links in the error message..
-        descriptionEnter.selectAll('.kr_error_entity_link')
+        descriptionEnter.selectAll('.error_entity_link, .error_object_link')
             .each(function() {
                 var link = d3_select(this);
-                var entityID = this.innerText;
+                var isObjectLink = link.classed('error_object_link');
+                var entityID = isObjectLink ?
+                    (utilEntityRoot(_error.object_type) + _error.object_id)
+                    : this.textContent;
                 var entity = context.hasEntity(entityID);
 
                 // Add click handler
@@ -87,15 +91,24 @@ export function uiKeepRightDetails(context) {
                         if (!osmlayer.enabled()) {
                             osmlayer.enabled(true);
                         }
-                        context.map().centerZoom(_error.loc, 20);
-                        context.enter(modeSelect(context, [entityID]));
+
+                        context.map().centerZoomEase(_error.loc, 20);
+
+                        if (entity) {
+                            context.enter(modeSelect(context, [entityID]));
+                        } else {
+                            context.loadEntity(entityID, function() {
+                                context.enter(modeSelect(context, [entityID]));
+                            });
+                        }
                     });
 
                 // Replace with friendly name if possible
                 // (The entity may not yet be loaded into the graph)
                 if (entity) {
                     var name = utilDisplayName(entity);  // try to use common name
-                    if (!name) {
+
+                    if (!name && !isObjectLink) {
                         var preset = context.presets().match(entity, context.graph());
                         name = preset && !preset.isFallback() && preset.name();  // fallback to preset name
                     }

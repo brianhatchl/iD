@@ -4,8 +4,8 @@ import { osmPavedTags } from '../osm/tags';
 
 export function svgTagClasses() {
     var primaries = [
-        'building', 'highway', 'railway', 'waterway', 'aeroway',
-        'motorway', 'boundary', 'power', 'amenity', 'natural', 'landuse',
+        'building', 'highway', 'railway', 'waterway', 'aeroway', 'aerialway',
+        'piste:type', 'boundary', 'power', 'amenity', 'natural', 'landuse',
         'leisure', 'military', 'place', 'man_made', 'route', 'attraction'
     ];
     var statuses = [
@@ -15,24 +15,43 @@ export function svgTagClasses() {
     var secondaries = [
         'oneway', 'bridge', 'tunnel', 'embankment', 'cutting', 'barrier',
         'surface', 'tracktype', 'footway', 'crossing', 'service', 'sport',
-        'public_transport', 'location', 'parking'
+        'public_transport', 'location', 'parking', 'golf'
     ];
-    var tagClassRe = /^tag-/;
     var _tags = function(entity) { return entity.tags; };
 
 
     var tagClasses = function(selection) {
         selection.each(function tagClassesEach(entity) {
             var value = this.className;
-            var classes, primary, status;
+            var primary, status;
 
-            if (value.baseVal !== undefined) value = value.baseVal;
+            if (value.baseVal !== undefined) {
+                value = value.baseVal;
+            }
 
-            classes = value.trim().split(/\s+/).filter(function(name) {
-                return name.length && !tagClassRe.test(name);
-            }).join(' ');
+            var t = _tags(entity);
+            var i, k, v;
 
-            var t = _tags(entity), i, k, v;
+            // in some situations we want to render perimeter strokes a certain way
+            var overrideGeometry;
+            if (/\bstroke\b/.test(value)) {
+                if (!!t.barrier && t.barrier !== 'no') {
+                    overrideGeometry = 'line';
+                } else if (t.type === 'multipolygon' && !entity.hasInterestingTags()) {
+                    overrideGeometry = 'area';
+                }
+            }
+
+            // preserve base classes (nothing with `tag-`)
+            var classes = value.trim().split(/\s+/)
+                .filter(function(klass) {
+                    return klass.length && !/^tag-/.test(klass);
+                })
+                .map(function(klass) {  // special overrides for some perimeter strokes
+                    return (klass === 'line' || klass === 'area') ? (overrideGeometry || klass) : klass;
+                });
+
+
 
             // pick at most one primary classification tag..
             for (i = 0; i < primaries.length; i++) {
@@ -40,12 +59,17 @@ export function svgTagClasses() {
                 v = t[k];
                 if (!v || v === 'no') continue;
 
+                if (k === 'piste:type') {  // avoid a ':' in the class name
+                    k = 'piste';
+                }
+
                 primary = k;
                 if (statuses.indexOf(v) !== -1) {   // e.g. `railway=abandoned`
                     status = v;
-                    classes += ' tag-' + k;
+                    classes.push('tag-' + k);
                 } else {
-                    classes += ' tag-' + k + ' tag-' + k + '-' + v;
+                    classes.push('tag-' + k);
+                    classes.push('tag-' + k + '-' + v);
                 }
 
                 break;
@@ -66,7 +90,7 @@ export function svgTagClasses() {
                     } else if (!primary && primaries.indexOf(v) !== -1) {  // e.g. `abandoned=railway`
                         status = k;
                         primary = v;
-                        classes += ' tag-' + v;
+                        classes.push('tag-' + v);
                     }  // else ignore e.g.  `highway=path + abandoned=railway`
 
                     if (status) break;
@@ -74,15 +98,17 @@ export function svgTagClasses() {
             }
 
             if (status) {
-                classes += ' tag-status tag-status-' + status;
+                classes.push('tag-status');
+                classes.push('tag-status-' + status);
             }
 
-            // add any secondary (structure) tags
+            // add any secondary tags
             for (i = 0; i < secondaries.length; i++) {
                 k = secondaries[i];
                 v = t[k];
                 if (!v || v === 'no') continue;
-                classes += ' tag-' + k + ' tag-' + k + '-' + v;
+                classes.push('tag-' + k);
+                classes.push('tag-' + k + '-' + v);
             }
 
             // For highways, look for surface tagging..
@@ -96,22 +122,22 @@ export function svgTagClasses() {
                     }
                 }
                 if (!paved) {
-                    classes += ' tag-unpaved';
+                    classes.push('tag-unpaved');
                 }
             }
 
-            classes = classes.trim();
 
-            if (classes !== value) {
-                d3_select(this).attr('class', classes);
+            var computed = classes.join(' ').trim();
+            if (computed !== value) {
+                d3_select(this).attr('class', computed);
             }
         });
     };
 
 
-    tagClasses.tags = function(_) {
+    tagClasses.tags = function(val) {
         if (!arguments.length) return _tags;
-        _tags = _;
+        _tags = val;
         return tagClasses;
     };
 

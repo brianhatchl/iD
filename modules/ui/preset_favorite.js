@@ -8,24 +8,31 @@ import {
 
 import { t } from '../util/locale';
 import { svgIcon } from '../svg';
-
+import { uiFavoriteButton } from 'favorite_button';
 
 export function uiPresetFavorite(preset, geom) {
     var presetFavorite = {};
 
     var _button = d3_select(null);
+    var _favoriteButton = uiFavoriteButton(preset, geom);
 
     var modesContainer = d3_select('div.modes');
-    var markerClass = preset.name() + '-' + geom;
+    var markerClass = preset.name()
+        .replace(/\w+/g, '_')
+        + '-' + geom; //replace spaces with underscores to avoid css interpretation
     var favorite = modesContainer.selectAll('button.favorite.' + markerClass);
 
 
     presetFavorite.button = function(selection) {
+        var data = (preset.icon) ? [0] : [];
+
         _button = selection.selectAll('.preset-favorite-button')
-            .data([0]);
+            .data(data);
+
+        _button.exit().remove();
 
         _button = _button.enter()
-            .append('button')
+            .insert('button', '.tag-reference-button')
             .attr('class', 'preset-favorite-button')
             .attr('title', t('icons.favorite'))
             .attr('tabindex', -1)
@@ -46,18 +53,10 @@ export function uiPresetFavorite(preset, geom) {
                         return !d3_select(this).classed('active');
                     });
 
-                //update selection on click
-                favorite = modesContainer.selectAll('button.favorite.' + markerClass);
-
-                //add or remove preset button from bar
-                if (favorite.size() == 1) {
-                    favorite.remove();
-                } else {
-                    modesContainer.append('button')
-                        .attr('class', 'favorite ' + markerClass);
-                }
+                _favoriteButton.update(modesContainer, markerClass);
 
             });
+
     };
 
     return presetFavorite;

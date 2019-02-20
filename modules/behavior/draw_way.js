@@ -1,15 +1,10 @@
-import { t } from '../util/locale';
-
 import {
     event as d3_event,
     select as d3_select
 } from 'd3-selection';
 
-import {
-    actionAddMidpoint,
-    actionMoveNode,
-    actionNoop
-} from '../actions';
+import { t } from '../util/locale';
+import { actionAddMidpoint, actionMoveNode, actionNoop } from '../actions';
 
 import { behaviorDraw } from './draw';
 import { geoChooseEdge, geoHasSelfIntersections } from '../geo';

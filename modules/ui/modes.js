@@ -10,11 +10,10 @@ import {
     modeBrowse
 } from '../modes';
 
-import { t } from '../util/locale';
 import { svgIcon } from '../svg';
+import { t } from '../util/locale';
 import { tooltip } from '../util/tooltip';
 import { uiTooltipHtml } from './tooltipHtml';
-import { uiPresetFavorite } from 'preset_favorite';
 
 export function uiModes(context) {
     var modes = [
@@ -108,7 +107,7 @@ export function uiModes(context) {
                     id: markerClass,
                     button: markerClass,
                     title: t('presets.presets.' + preset.id + '.name'),
-                    description: [t('operations.add.title'), t('presets.presets.' + preset.id + '.name'), t('geometry.' + d.geom)].join(' '),
+                    description: [t('operations.add.title'), t('presets.presets.' + preset.id + '.name').toLowerCase(), t('geometry.' + d.geom)].join(' '),
                     key: '',
                     icon: icon
                 }

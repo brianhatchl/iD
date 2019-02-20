@@ -1157,17 +1157,21 @@ a.hide-toggle {
     flex: 32px;
     background: #f6f6f6;
 }
-[dir='rtl'] .preset-list-item button.preset-favorite-button,
+[dir='ltr'] .preset-list-item button.preset-favorite-button,
 [dir='ltr'] .preset-list-item button.tag-reference-button {
     border-left: none;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0;
 }
+[dir='rtl'] .preset-list-item button.preset-favorite-button,
 [dir='rtl'] .preset-list-item button.tag-reference-button {
     border-right: none;
-    border-radius: 4px 0 0 4px;
+    border-radius: 0;
 }
-.preset-list-item button:last-child {
+[dir='ltr'] .preset-list-item button:last-child {
     border-radius: 0 4px 4px 0;
+}
+[dir='rtl'] .preset-list-item button:last-child {
+    border-radius: 4px 0 0 4px;
 }
 
 .preset-list-item button.preset-favorite-button:hover,
@@ -1285,10 +1289,6 @@ img.tag-reference-wiki-image {
     display: none;
 }
 .entity-editor-pane .preset-list-item {
-    margin-bottom: 0;
-    display: flex;
-}
-.entity-editor-pane .preset-list-item .preset-list-button-wrap button {
     margin-bottom: 0;
 }
 

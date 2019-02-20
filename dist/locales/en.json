@@ -416,6 +416,8 @@
             "modified": "Modified",
             "deleted": "Deleted",
             "created": "Created",
+            "outstanding_errors_message": "Please resolve all errors first. {count} remaining.",
+            "comment_needed_message": "Please add a changeset comment first.",
             "about_changeset_comments": "About changeset comments",
             "about_changeset_comments_link": "//wiki.openstreetmap.org/wiki/Good_changeset_comments",
             "google_warning": "You mentioned Google in this comment: remember that copying from Google Maps is strictly forbidden.",
@@ -520,10 +522,14 @@
             "role": "Role",
             "choose": "Select feature type",
             "results": "{n} results for {search}",
-            "no_documentation_key": "There is no documentation available for this key",
+            "no_documentation_key": "There is no documentation available.",
             "edit_reference": "edit/translate",
             "wiki_reference": "View documentation",
             "wiki_en_reference": "View documentation in English",
+            "hidden_preset": {
+                "manual": "{features} are hidden. Enable them in the Map Data pane.",
+                "zoom": "{features} are hidden. Zoom in to enable them."
+            },
             "back_tooltip": "Change feature",
             "remove": "Remove",
             "search": "Search",
@@ -655,11 +661,11 @@
                 "tooltip": "Power Lines, Power Plants, Substations, etc."
             },
             "past_future": {
-                "description": "Past/Future",
+                "description": "Past/Future Features",
                 "tooltip": "Proposed, Construction, Abandoned, Demolished, etc."
             },
             "others": {
-                "description": "Others",
+                "description": "Other Features",
                 "tooltip": "Everything Else"
             }
         },
@@ -779,25 +785,6 @@
             "on_wiki": "{tag} on wiki.osm.org",
             "used_with": "used with {type}"
         },
-        "validations": {
-            "disconnected_highway": "Disconnected highway",
-            "disconnected_highway_tooltip": "Roads should be connected to other roads or building entrances.",
-            "generic_name": "Possible generic name",
-            "generic_name_tooltip": "This feature seems to have a generic name \"{name}\". Please only use the name field to record the official name of a feature.",
-            "old_multipolygon": "Multipolygon tags on outer way",
-            "old_multipolygon_tooltip": "This style of multipolygon is deprecated. Please assign the tags to the parent multipolygon instead of the outer way.",
-            "untagged_point": "Untagged point",
-            "untagged_point_tooltip": "Select a feature type that describes what this point is.",
-            "untagged_line": "Untagged line",
-            "untagged_line_tooltip": "Select a feature type that describes what this line is.",
-            "untagged_area": "Untagged area",
-            "untagged_area_tooltip": "Select a feature type that describes what this area is.",
-            "untagged_relation": "Untagged relation",
-            "untagged_relation_tooltip": "Select a feature type that describes what this relation is.",
-            "many_deletions": "You're deleting {n} features: {p} nodes, {l} lines, {a} areas, {r} relations. Are you sure you want to do this? This will delete them from the map that everyone else sees on openstreetmap.org.",
-            "tag_suggests_area": "The tag {tag} suggests line should be area, but it is not an area",
-            "deprecated_tags": "Deprecated tags: {tags}"
-        },
         "zoom": {
             "in": "Zoom in",
             "out": "Zoom out"
@@ -830,7 +817,8 @@
                     },
                     "mr": {
                         "title": "Missing Geometry",
-                        "description": "{num_trips} recorded trips in this area suggest there may be unmapped {geometry_type} here."
+                        "description": "{num_trips} recorded trips in this area suggest there may be unmapped {geometry_type} here.",
+                        "description_alt": "Data from a 3rd party suggests there may be unmapped {geometry_type} here."
                     },
                     "tr": {
                         "title": "Missing Turn Restriction",
@@ -1425,6 +1413,201 @@
                         "indirect_example": "These restrictions exist because of another nearby restriction. For example, an \"Only Straight On\" restriction will indirectly create \"No Turn\" restrictions for all other paths through the intersection.",
                         "indirect_noedit": "You may not edit indirect restrictions. Instead, edit the nearby direct restriction."
                     }
+                }
+            }
+        },
+        "issues": {
+            "title": "Issues",
+            "key": "I",
+            "list_title": "Issues ({count})",
+            "errors": {
+                "list_title": "Errors ({count})"
+            },
+            "warnings": {
+                "list_title": "Warnings ({count})"
+            },
+            "no_issues": {
+                "message": "Everything looks fine",
+                "info": "Any issues will show up here as you edit"
+            },
+            "almost_junction": {
+                "message": "{feature} is very close but not connected to {feature2}",
+                "highway-highway": {
+                    "tip": "Intersecting highways should share a junction vertex."
+                }
+            },
+            "crossing_ways": {
+                "message": "{feature} crosses {feature2}",
+                "building-building": {
+                    "tip": "Buildings should not intersect except on different layers."
+                },
+                "building-highway": {
+                    "tip": "Highways crossing buildings should use bridges, tunnels, coverings, or entrances."
+                },
+                "building-railway": {
+                    "tip": "Railways crossing buildings should use bridges or tunnels."
+                },
+                "building-waterway": {
+                    "tip": "Waterways crossing buildings should use tunnels or different layers."
+                },
+                "highway-highway": {
+                    "tip": "Crossing highways should use bridges, tunnels, or intersections."
+                },
+                "highway-railway": {
+                    "tip": "Highways crossing railways should use bridges, tunnels, or level crossings."
+                },
+                "highway-waterway": {
+                    "tip": "Highways crossing waterways should use bridges, tunnels, or fords."
+                },
+                "railway-railway": {
+                    "tip": "Crossing railways should be connected or use bridges or tunnels."
+                },
+                "railway-waterway": {
+                    "tip": "Railways crossing waterways should use bridges or tunnels."
+                },
+                "waterway-waterway": {
+                    "tip": "Crossing waterways should be connected or use tunnels."
+                },
+                "tunnel-tunnel": {
+                    "tip": "Crossing tunnels should use different layers."
+                },
+                "tunnel-tunnel_connectable": {
+                    "tip": "Crossing tunnels should be connected or use different layers."
+                },
+                "bridge-bridge": {
+                    "tip": "Crossing bridges should use different layers."
+                },
+                "bridge-bridge_connectable": {
+                    "tip": "Crossing bridges should be connected or use different layers."
+                },
+                "indoor-indoor": {
+                    "tip": "Crossing indoor features should use different levels."
+                },
+                "indoor-indoor_connectable": {
+                    "tip": "Crossing indoor features should be connected or use different levels."
+                }
+            },
+            "deprecated_tag": {
+                "single": {
+                    "message": "{feature} has the outdated tag \"{tag}\""
+                },
+                "combination": {
+                    "message": "{feature} has an outdated tag combination: {tags}"
+                },
+                "tip": "Some tags become deprecated over time and should be replaced."
+            },
+            "disconnected_way": {
+                "highway": {
+                    "message": "{highway} is disconnected from other roads and paths",
+                    "tip": "Highways should connect to other highways or building entrances."
+                }
+            },
+            "generic_name": {
+                "message": "{feature} has the generic name \"{name}\"",
+                "tip": "Names should be the actual, on-the-ground names of features."
+            },
+            "many_deletions": {
+                "points-lines-areas": {
+                    "message": "Deleting {n} features: {p} points, {l} lines, and {a} areas"
+                },
+                "points-lines-areas-relations": {
+                    "message": "Deleting {n} features: {p} points, {l} lines, {a} areas, and {r} relations"
+                },
+                "tip": "Only redundant or nonexistent features should be deleted."
+            },
+            "missing_tag": {
+                "any": {
+                    "message": "{feature} has no tags"
+                },
+                "descriptive": {
+                    "message": "{feature} has no descriptive tags"
+                },
+                "specific": {
+                    "message": "{feature} has no \"{tag}\" tag"
+                },
+                "tip": "Features must have tags that define what they are."
+            },
+            "old_multipolygon": {
+                "message": "{multipolygon} has misplaced tags",
+                "tip": "Multipolygons should be tagged on their relation, not their outer way."
+            },
+            "tag_suggests_area": {
+                "message": "{feature} should be a closed area based on the tag \"{tag}\"",
+                "tip": "Areas must have connected endpoints."
+            },
+            "fix": {
+                "connect_almost_junction": {
+                    "annotation": "Connected very close features."
+                },
+                "connect_crossing_features": {
+                    "annotation": "Connected crossing features."
+                },
+                "connect_endpoints": {
+                    "title": "Connect the ends",
+                    "annotation": "Connected the endpoints of a way."
+                },
+                "connect_features": {
+                    "title": "Connect the features"
+                },
+                "continue_from_start": {
+                    "title": "Continue drawing from start"
+                },
+                "continue_from_end": {
+                    "title": "Continue drawing from end"
+                },
+                "delete_feature": {
+                    "title": "Delete this feature"
+                },
+                "move_tags": {
+                    "title": "Move the tags",
+                    "annotation": "Moved tags."
+                },
+                "remove_deprecated_tag": {
+                    "annotation": "Removed an old tag."
+                },
+                "remove_deprecated_tag_combo": {
+                    "annotation": "Removed an old tag combination."
+                },
+                "remove_generic_name": {
+                    "title": "Remove the name",
+                    "annotation": "Removed a generic name."
+                },
+                "remove_tag": {
+                    "title": "Remove the tag",
+                    "annotation": "Removed tag."
+                },
+                "remove_tags": {
+                    "title": "Remove the tags"
+                },
+                "reposition_features": {
+                    "title": "Reposition the features"
+                },
+                "select_preset": {
+                    "title": "Select a feature type"
+                },
+                "tag_as_disconnected": {
+                    "title": "Tag as disconnected",
+                    "annotation": "Tagged very close features as disconnected."
+                },
+                "upgrade_tag": {
+                    "title": "Upgrade the tag",
+                    "annotation": "Upgraded an old tag."
+                },
+                "upgrade_tag_combo": {
+                    "title": "Upgrade the tags",
+                    "annotation": "Upgraded an old tag combination."
+                },
+                "use_bridge_or_tunnel": {
+                    "title": "Use a bridge or tunnel"
+                },
+                "use_different_layers": {
+                    "title": "Use different layers"
+                },
+                "use_different_levels": {
+                    "title": "Use different levels"
+                },
+                "use_tunnel": {
+                    "title": "Use a tunnel"
                 }
             }
         },
@@ -2282,6 +2465,15 @@
                 "denotation": {
                     "label": "Denotation"
                 },
+                "departures_board": {
+                    "label": "Departures Board",
+                    "options": {
+                        "yes": "Yes",
+                        "timetable": "Timetable",
+                        "realtime": "Realtime",
+                        "no": "None"
+                    }
+                },
                 "description": {
                     "label": "Description"
                 },
@@ -2622,6 +2814,14 @@
                 "internet_access/ssid": {
                     "label": "SSID (Network Name)"
                 },
+                "junction_line": {
+                    "label": "Junction",
+                    "options": {
+                        "roundabout": "Roundabout",
+                        "circular": "Traffic Circle",
+                        "jughandle": "Jughandle"
+                    }
+                },
                 "junction/ref_oneway": {
                     "label": "Junction Number"
                 },
@@ -2892,9 +3092,6 @@
                         "garage_boxes": "Garage Boxes",
                         "lane": "Roadside Lane"
                     }
-                },
-                "passenger_information_display": {
-                    "label": "Passenger information display"
                 },
                 "payment_multi": {
                     "label": "Payment Types"
@@ -3653,7 +3850,7 @@
             "presets": {
                 "aerialway": {
                     "name": "Aerialway",
-                    "terms": "ski lift,funifor,funitel"
+                    "terms": ""
                 },
                 "aeroway": {
                     "name": "Aeroway",
@@ -3679,6 +3876,22 @@
                     "name": "Highway",
                     "terms": ""
                 },
+                "landuse": {
+                    "name": "Land Use",
+                    "terms": ""
+                },
+                "leisure": {
+                    "name": "Leisure",
+                    "terms": ""
+                },
+                "man_made": {
+                    "name": "Man Made",
+                    "terms": ""
+                },
+                "natural": {
+                    "name": "Natural",
+                    "terms": ""
+                },
                 "place": {
                     "name": "Place",
                     "terms": ""
@@ -3697,6 +3910,10 @@
                 },
                 "seamark": {
                     "name": "Seamark",
+                    "terms": ""
+                },
+                "tourism": {
+                    "name": "Tourism",
                     "terms": ""
                 },
                 "waterway": {
@@ -4134,6 +4351,10 @@
                 "amenity/pharmacy": {
                     "name": "Pharmacy Counter",
                     "terms": "apothecary,drug store,drugstore,med*,prescription"
+                },
+                "amenity/photo_booth": {
+                    "name": "Photo Booth",
+                    "terms": "photobooth,photo,booth,kiosk,camera"
                 },
                 "amenity/place_of_worship": {
                     "name": "Place of Worship",
@@ -4676,7 +4897,7 @@
                     "terms": ""
                 },
                 "building/train_station": {
-                    "name": "Train Station",
+                    "name": "Train Station Building",
                     "terms": ""
                 },
                 "building/apartments": {
@@ -5563,10 +5784,6 @@
                     "name": "Junction",
                     "terms": ""
                 },
-                "landuse": {
-                    "name": "Land Use",
-                    "terms": ""
-                },
                 "landuse/basin": {
                     "name": "Basin",
                     "terms": ""
@@ -5750,10 +5967,6 @@
                 "landuse/vineyard": {
                     "name": "Vineyard",
                     "terms": "grape,wine"
-                },
-                "leisure": {
-                    "name": "Leisure",
-                    "terms": ""
                 },
                 "leisure/adult_gaming_centre": {
                     "name": "Adult Gaming Center",
@@ -6047,10 +6260,6 @@
                     "name": "Line",
                     "terms": ""
                 },
-                "man_made": {
-                    "name": "Man Made",
-                    "terms": ""
-                },
                 "man_made/adit": {
                     "name": "Adit",
                     "terms": "entrance,underground,mine,cave"
@@ -6230,10 +6439,6 @@
                 "manhole/telecom": {
                     "name": "Telecom Manhole",
                     "terms": "cover,phone,hole,telecom,telephone,bt"
-                },
-                "natural": {
-                    "name": "Natural",
-                    "terms": ""
                 },
                 "natural/bare_rock": {
                     "name": "Bare Rock",
@@ -7045,7 +7250,7 @@
                 },
                 "shop/bakery": {
                     "name": "Bakery",
-                    "terms": ""
+                    "terms": "bread,cakes,rolls"
                 },
                 "shop/bathroom_furnishing": {
                     "name": "Bathroom Furnishing Store",
@@ -7069,15 +7274,15 @@
                 },
                 "shop/beverages": {
                     "name": "Beverage Store",
-                    "terms": ""
+                    "terms": "drinks"
                 },
                 "shop/bicycle": {
                     "name": "Bicycle Shop",
-                    "terms": "bike,repair"
+                    "terms": "bike,repair,tricycle,unicycle"
                 },
                 "shop/bookmaker": {
                     "name": "Bookmaker",
-                    "terms": "betting"
+                    "terms": "betting,bookie"
                 },
                 "shop/books": {
                     "name": "Book Store",
@@ -7089,27 +7294,27 @@
                 },
                 "shop/butcher": {
                     "name": "Butcher",
-                    "terms": "meat"
+                    "terms": "chicken,beef,lamb,meat,pork"
                 },
                 "shop/candles": {
                     "name": "Candle Shop",
-                    "terms": ""
+                    "terms": "wax"
                 },
                 "shop/car_parts": {
                     "name": "Car Parts Store",
-                    "terms": "auto"
+                    "terms": "automobile,automotive"
                 },
                 "shop/car_repair": {
                     "name": "Car Repair Shop",
-                    "terms": "auto,garage,service"
+                    "terms": "automobile,automotive,garage,service"
                 },
                 "shop/car": {
                     "name": "Car Dealership",
-                    "terms": "auto"
+                    "terms": "automobile,automotive"
                 },
                 "shop/caravan": {
                     "name": "RV Dealership",
-                    "terms": "auto"
+                    "terms": "auto,camper,recreational vehicle"
                 },
                 "shop/carpet": {
                     "name": "Carpet Store",
@@ -7133,7 +7338,7 @@
                 },
                 "shop/chocolate": {
                     "name": "Chocolate Store",
-                    "terms": ""
+                    "terms": "cocoa"
                 },
                 "shop/clothes": {
                     "name": "Clothing Store",
@@ -7145,7 +7350,7 @@
                 },
                 "shop/computer": {
                     "name": "Computer Store",
-                    "terms": ""
+                    "terms": "desktop,laptop,hardware,operating system,software"
                 },
                 "shop/confectionery": {
                     "name": "Candy Store",
@@ -7157,11 +7362,11 @@
                 },
                 "shop/copyshop": {
                     "name": "Copy Store",
-                    "terms": ""
+                    "terms": "print,scan"
                 },
                 "shop/cosmetics": {
                     "name": "Cosmetics Store",
-                    "terms": ""
+                    "terms": "make-up,makeup"
                 },
                 "shop/country_store": {
                     "name": "Country Store",
@@ -7197,7 +7402,7 @@
                 },
                 "shop/e-cigarette": {
                     "name": "E-Cigarette Shop",
-                    "terms": "electronic,vapor"
+                    "terms": "electronic,vape,vaping,vapor"
                 },
                 "shop/electronics": {
                     "name": "Electronics Store",
@@ -7225,7 +7430,7 @@
                 },
                 "shop/fishing": {
                     "name": "Fishing Shop",
-                    "terms": ""
+                    "terms": "bait,fishing line,flies,fly,lure,reel,rod,tackle"
                 },
                 "shop/florist": {
                     "name": "Florist",
@@ -7265,7 +7470,7 @@
                 },
                 "shop/greengrocer": {
                     "name": "Greengrocer",
-                    "terms": "fruit,vegetable"
+                    "terms": "fruit,produce,vegetable"
                 },
                 "shop/hairdresser_supply": {
                     "name": "Hairdresser Supply Store",
@@ -7293,7 +7498,7 @@
                 },
                 "shop/hifi": {
                     "name": "Hifi Store",
-                    "terms": "stereo,video"
+                    "terms": "audio,hi-fi,high fidelity,stereo,video"
                 },
                 "shop/houseware": {
                     "name": "Houseware Store",
@@ -7301,7 +7506,7 @@
                 },
                 "shop/hunting": {
                     "name": "Hunting Shop",
-                    "terms": ""
+                    "terms": "arrows,bows,bullets,crossbows,rifles,traps"
                 },
                 "shop/interior_decoration": {
                     "name": "Interior Decoration Store",
@@ -7309,7 +7514,7 @@
                 },
                 "shop/jewelry": {
                     "name": "Jeweler",
-                    "terms": "diamond,gem,ring"
+                    "terms": "bracelet,diamond,earrings,gem,necklace,pins,ring"
                 },
                 "shop/kiosk": {
                     "name": "Kiosk",
@@ -7317,7 +7522,7 @@
                 },
                 "shop/kitchen": {
                     "name": "Kitchen Design Store",
-                    "terms": ""
+                    "terms": "cabinets,countertops,sinks"
                 },
                 "shop/laundry": {
                     "name": "Laundry",
@@ -7365,7 +7570,7 @@
                 },
                 "shop/music": {
                     "name": "Music Store",
-                    "terms": "CD,vinyl"
+                    "terms": "tape casettes,CDs,compact discs,vinyl records"
                 },
                 "shop/musical_instrument": {
                     "name": "Musical Instrument Store",
@@ -7413,7 +7618,7 @@
                 },
                 "shop/pet_grooming": {
                     "name": "Pet Grooming Store",
-                    "terms": "dog"
+                    "terms": "cat,dog"
                 },
                 "shop/pet": {
                     "name": "Pet Store",
@@ -7429,7 +7634,7 @@
                 },
                 "shop/radiotechnics": {
                     "name": "Radio/Electronic Component Store",
-                    "terms": ""
+                    "terms": "antenna,transistor"
                 },
                 "shop/religion": {
                     "name": "Religious Store",
@@ -7453,11 +7658,11 @@
                 },
                 "shop/shoes": {
                     "name": "Shoe Store",
-                    "terms": ""
+                    "terms": "boots,cleats,clogs,heels,loafers,oxfords,sneakers"
                 },
                 "shop/sports": {
                     "name": "Sporting Goods Store",
-                    "terms": ""
+                    "terms": "athletics"
                 },
                 "shop/stationery": {
                     "name": "Stationery Store",
@@ -7465,7 +7670,7 @@
                 },
                 "shop/storage_rental": {
                     "name": "Storage Rental",
-                    "terms": ""
+                    "terms": "garages"
                 },
                 "shop/supermarket": {
                     "name": "Supermarket",
@@ -7477,7 +7682,7 @@
                 },
                 "shop/tattoo": {
                     "name": "Tattoo Parlor",
-                    "terms": ""
+                    "terms": "ink"
                 },
                 "shop/tea": {
                     "name": "Tea Store",
@@ -7485,7 +7690,7 @@
                 },
                 "shop/ticket": {
                     "name": "Ticket Seller",
-                    "terms": ""
+                    "terms": "box office"
                 },
                 "shop/tiles": {
                     "name": "Tile Shop",
@@ -7493,11 +7698,11 @@
                 },
                 "shop/tobacco": {
                     "name": "Tobacco Shop",
-                    "terms": ""
+                    "terms": "cigarettes,cigars"
                 },
                 "shop/toys": {
                     "name": "Toy Store",
-                    "terms": ""
+                    "terms": "games"
                 },
                 "shop/trade": {
                     "name": "Trade Shop",
@@ -7525,7 +7730,7 @@
                 },
                 "shop/video": {
                     "name": "Video Store",
-                    "terms": "DVD"
+                    "terms": "DVD,VHS,video casette"
                 },
                 "shop/watches": {
                     "name": "Watches Shop",
@@ -7553,10 +7758,6 @@
                 },
                 "shop/wine": {
                     "name": "Wine Shop",
-                    "terms": ""
-                },
-                "tourism": {
-                    "name": "Tourism",
                     "terms": ""
                 },
                 "tourism/alpine_hut": {

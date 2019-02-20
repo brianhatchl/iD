@@ -14,7 +14,6 @@ import { tooltip } from '../util/tooltip';
 import { actionChangeTags } from '../actions';
 import { modeBrowse } from '../modes';
 import { svgIcon } from '../svg';
-import { uiPresetEditor } from './preset_editor';
 import { uiPresetFavorite } from './preset_favorite';
 import { uiPresetIcon } from './preset_icon';
 import { uiQuickLinks } from './quick_links';
@@ -22,6 +21,8 @@ import { uiRawMemberEditor } from './raw_member_editor';
 import { uiRawMembershipEditor } from './raw_membership_editor';
 import { uiRawTagEditor } from './raw_tag_editor';
 import { uiTagReference } from './tag_reference';
+import { uiPresetEditor } from './preset_editor';
+import { uiEntityIssues } from './entity_issues';
 import { uiTooltipHtml } from './tooltipHtml';
 import { utilCleanTags, utilRebind } from '../util';
 
@@ -37,6 +38,7 @@ export function uiEntityEditor(context) {
     var _tagReference;
     var _presetFavorite;
 
+    var entityIssues = uiEntityIssues(context);
     var quickLinks = uiQuickLinks();
     var presetEditor = uiPresetEditor(context).on('change', changeTags);
     var rawTagEditor = uiRawTagEditor(context).on('change', changeTags);
@@ -109,6 +111,10 @@ export function uiEntityEditor(context) {
 
         bodyEnter
             .append('div')
+            .attr('class', 'entity-issues');
+
+        bodyEnter
+            .append('div')
             .attr('class', 'preset-editor');
 
         bodyEnter
@@ -172,7 +178,6 @@ export function uiEntityEditor(context) {
             .attr('class', 'namepart')
             .text(function(d) { return d; });
 
-
         // update quick links
         var choices = [{
             id: 'zoom_to',
@@ -190,6 +195,11 @@ export function uiEntityEditor(context) {
 
 
         // update editor sections
+        body.select('.entity-issues')
+            .call(entityIssues
+                .entityID(_entityID)
+            );
+
         body.select('.preset-editor')
             .call(presetEditor
                 .preset(_activePreset)

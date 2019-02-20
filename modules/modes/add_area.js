@@ -48,7 +48,7 @@ export function modeAddArea(context, customMode, preset) {
             actionClose(way.id)
         );
 
-        context.enter(modeDrawArea(context, way.id, startGraph, mode.button));
+        context.enter(modeDrawArea(context, way.id, startGraph, context.graph(), mode.button));
     }
 
 
@@ -65,7 +65,7 @@ export function modeAddArea(context, customMode, preset) {
             actionAddMidpoint({ loc: loc, edge: edge }, node)
         );
 
-        context.enter(modeDrawArea(context, way.id, startGraph, mode.button));
+        context.enter(modeDrawArea(context, way.id, startGraph, context.graph(), mode.button));
     }
 
 
@@ -79,7 +79,7 @@ export function modeAddArea(context, customMode, preset) {
             actionClose(way.id)
         );
 
-        context.enter(modeDrawArea(context, way.id, startGraph, mode.button));
+        context.enter(modeDrawArea(context, way.id, startGraph, context.graph(), mode.button));
     }
 
 

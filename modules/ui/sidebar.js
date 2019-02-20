@@ -68,6 +68,7 @@ export function uiSidebar(context) {
             })
             .on('drag', function() {
                 var isRTL = (textDirection === 'rtl');
+                var scaleX = isRTL ? 0 : 1;
                 var xMarginProperty = isRTL ? 'margin-right' : 'margin-left';
 
                 var x = d3_event.x - dragOffset;
@@ -84,7 +85,7 @@ export function uiSidebar(context) {
                             .style(xMarginProperty, '-400px')
                             .style('width', '400px');
 
-                        context.ui().onResize([sidebarWidth - d3_event.dx, 0]);
+                        context.ui().onResize([(sidebarWidth - d3_event.dx) * scaleX, 0]);
                     }
 
                 } else {
@@ -94,9 +95,9 @@ export function uiSidebar(context) {
                         .style('width', widthPct + '%');
 
                     if (isCollapsed) {
-                        context.ui().onResize([-sidebarWidth, 0]);
+                        context.ui().onResize([-sidebarWidth * scaleX, 0]);
                     } else {
-                        context.ui().onResize([-d3_event.dx, 0]);
+                        context.ui().onResize([-d3_event.dx * scaleX, 0]);
                     }
                 }
             })
@@ -195,7 +196,6 @@ export function uiSidebar(context) {
             }
         }
 
-
         sidebar.hover = _throttle(hover, 200);
 
 
@@ -212,9 +212,9 @@ export function uiSidebar(context) {
             sidebar.hide();
 
             if (id) {
+                var entity = context.entity(id);
                 // uncollapse the sidebar
                 if (selection.classed('collapsed')) {
-                    var entity = context.entity(id);
                     var extent = entity.extent(context.graph());
                     sidebar.expand(sidebar.intersects(extent));
                 }
@@ -235,6 +235,10 @@ export function uiSidebar(context) {
                     inspectorWrap
                         .call(inspector, newFeature);
                 }
+
+                sidebar.showPresetList = function() {
+                    inspector.showList(context.presets().match(entity, context.graph()));
+                };
 
             } else {
                 inspector
@@ -295,7 +299,9 @@ export function uiSidebar(context) {
 
             var isCollapsed = selection.classed('collapsed');
             var isCollapsing = !isCollapsed;
-            var xMarginProperty = textDirection === 'rtl' ? 'margin-right' : 'margin-left';
+            var isRTL = (textDirection === 'rtl');
+            var scaleX = isRTL ? 0 : 1;
+            var xMarginProperty = isRTL ? 'margin-right' : 'margin-left';
 
             sidebarWidth = selection.node().getBoundingClientRect().width;
 
@@ -318,7 +324,7 @@ export function uiSidebar(context) {
                     return function(t) {
                         var dx = lastMargin - Math.round(i(t));
                         lastMargin = lastMargin - dx;
-                        context.ui().onResize(moveMap ? undefined : [dx, 0]);
+                        context.ui().onResize(moveMap ? undefined : [dx * scaleX, 0]);
                     };
                 })
                 .on('end', function() {
@@ -339,7 +345,7 @@ export function uiSidebar(context) {
         resizer.on('dblclick', sidebar.toggle);
     }
 
-
+    sidebar.showPresetList = function() {};
     sidebar.hover = function() {};
     sidebar.hover.cancel = function() {};
     sidebar.intersects = function() {};

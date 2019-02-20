@@ -133,19 +133,19 @@ export function uiEntityEditor(context) {
         body = body
             .merge(bodyEnter);
 
-        // if (_presetFavorite) {
-        //     body.selectAll('.preset-list-button-wrap')
-        //         .call(_presetFavorite.button);
-        // }
+        if (_presetFavorite) {
+            body.selectAll('.preset-list-button-wrap')
+                .call(_presetFavorite.button);
+        }
 
-        // // update header
-        // if (_tagReference) {
-        //     body.selectAll('.preset-list-button-wrap')
-        //         .call(_tagReference.button);
+        // update header
+        if (_tagReference) {
+            body.selectAll('.preset-list-button-wrap')
+                .call(_tagReference.button);
 
-        //     body.selectAll('.preset-list-item')
-        //         .call(_tagReference.body);
-        // }
+            body.selectAll('.preset-list-item')
+                .call(_tagReference.body);
+        }
 
         body.selectAll('.preset-reset')
             .on('click', function() {
@@ -330,7 +330,7 @@ export function uiEntityEditor(context) {
             _activePreset = val;
             _tagReference = uiTagReference(_activePreset.reference(context.geometry(_entityID)), context)
                 .showing(false);
-            _presetFavorite = uiPresetFavorite(_activePreset, context.geometry(_entityID));
+            _presetFavorite = uiPresetFavorite(_activePreset, context.geometry(_entityID), context);
         }
         return entityEditor;
     };

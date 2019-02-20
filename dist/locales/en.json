@@ -52,7 +52,8 @@
                     "vertex": "Added a node to a way.",
                     "relation": "Added a relation.",
                     "note": "Added a note."
-                }
+                },
+                "title": "Add"
             },
             "start": {
                 "annotation": {

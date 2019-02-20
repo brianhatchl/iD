@@ -8,19 +8,13 @@ import {
 
 import { t } from '../util/locale';
 import { svgIcon } from '../svg';
-import { uiFavoriteButton } from 'favorite_button';
+import { uiModes } from './modes';
 
-export function uiPresetFavorite(preset, geom) {
+export function uiPresetFavorite(preset, geom, context) {
+
     var presetFavorite = {};
 
     var _button = d3_select(null);
-    var _favoriteButton = uiFavoriteButton(preset, geom);
-
-    var modesContainer = d3_select('div.modes');
-    var markerClass = preset.name()
-        .replace(/\s+/g, '_')
-        + '-' + geom; //replace spaces with underscores to avoid css interpretation
-    var favorite = modesContainer.selectAll('button.favorite.' + markerClass);
 
 
     presetFavorite.button = function(selection) {
@@ -41,7 +35,7 @@ export function uiPresetFavorite(preset, geom) {
 
         _button
             .classed('active', function(d) {
-                return favorite.size() == 1;
+                return context.isFavoritePreset(preset, geom);
             })
             .on('click', function () {
                 d3_event.stopPropagation();
@@ -53,7 +47,7 @@ export function uiPresetFavorite(preset, geom) {
                         return !d3_select(this).classed('active');
                     });
 
-                _favoriteButton.update(modesContainer, markerClass);
+               context.favoritePreset(preset, geom);
 
             });
 

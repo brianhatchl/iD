@@ -317,7 +317,7 @@ export function behaviorDrawWay(context, wayId, index, mode, startGraph) {
         window.setTimeout(function() {
             context.map().dblclickEnable(true);
         }, 1000);
-        var isNewFeature = !mode.isContinuing;
+        var isNewFeature = !mode.isContinuing && mode.button.indexOf('add-preset-') === -1;
         context.enter(modeSelect(context, [wayId]).newFeature(isNewFeature));
     };
 

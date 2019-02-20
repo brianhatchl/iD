@@ -5,7 +5,6 @@ import {
 
 import { t } from '../util/locale';
 import { actionAddMidpoint, actionMoveNode, actionNoop } from '../actions';
-
 import { behaviorDraw } from './draw';
 import { geoChooseEdge, geoHasSelfIntersections } from '../geo';
 import { modeBrowse, modeSelect } from '../modes';
